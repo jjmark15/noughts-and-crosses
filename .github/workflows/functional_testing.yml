@@ -1,0 +1,31 @@
+name: Functional Testing
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'server/crates/functional_testing/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'server/crates/functional_testing/**'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: server/target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build
+        run: cargo build --manifest-path ./server/crates/functional_testing/Cargo.toml --verbose
+      - name: Run tests
+        run: cargo test --manifest-path ./server/crates/functional_testing/Cargo.toml --verbose
