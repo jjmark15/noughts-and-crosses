@@ -1,5 +1,6 @@
-use reqwest::StatusCode;
 use spectral::prelude::*;
+
+use functional_testing::http::{Client, Method, StatusCode};
 
 use crate::common::server_handle;
 
@@ -7,7 +8,9 @@ use crate::common::server_handle;
 async fn returns_status() {
     let _server_handle = server_handle();
 
-    let resp = reqwest::get("http://localhost:3030/admin/status")
+    let resp = Client::new()
+        .request(Method::GET, "http://localhost:3030/admin/status")
+        .send()
         .await
         .unwrap();
 

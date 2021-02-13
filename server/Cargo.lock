@@ -187,6 +187,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 
 [[package]]
+name = "functional_testing"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "tokio",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1147,7 +1155,7 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
- "reqwest",
+ "functional_testing",
  "serde",
  "serde_json",
  "spectral",
