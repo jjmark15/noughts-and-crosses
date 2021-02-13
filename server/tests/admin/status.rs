@@ -1,8 +1,7 @@
 use reqwest::StatusCode;
 use spectral::prelude::*;
-use tokio::task::JoinHandle;
 
-use server::App;
+use crate::common::server_handle;
 
 #[tokio::test]
 async fn returns_status() {
@@ -27,8 +26,4 @@ impl StatusResponse {
     fn new(status: String) -> Self {
         StatusResponse { status }
     }
-}
-
-fn server_handle() -> JoinHandle<()> {
-    tokio::task::spawn(async { App::new().run().await })
 }
