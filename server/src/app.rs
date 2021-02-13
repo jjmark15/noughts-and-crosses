@@ -11,10 +11,15 @@ impl App {
     }
 
     pub async fn run(&self) {
-        let status = warp::get()
-            .and(warp::path!("admin" / "status"))
-            .map(status_handler);
+        let routes = warp::any().and(warp::path("admin").and(Self::admin_routes()));
 
-        warp::serve(status).run(([0, 0, 0, 0], 3030)).await;
+        warp::serve(routes).run(([0, 0, 0, 0], 3030)).await;
+    }
+
+    fn admin_routes() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
+    {
+        let status = warp::get().and(warp::path("status")).map(status_handler);
+
+        warp::any().and(status)
     }
 }
