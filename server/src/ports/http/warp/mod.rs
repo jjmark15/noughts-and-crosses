@@ -1,3 +1,14 @@
-mod status_handler;
+use warp::http::StatusCode;
+use warp::reply::Response;
+use warp::Reply;
 
-pub(crate) use status_handler::status_handler;
+pub(crate) use filters::*;
+
+mod filters;
+
+pub(crate) fn json_reply_with_status<T: serde::Serialize>(
+    body: &T,
+    status_code: StatusCode,
+) -> Response {
+    warp::reply::with_status(warp::reply::json(body), status_code).into_response()
+}

@@ -1,6 +1,7 @@
 use spectral::prelude::*;
 
 use functional_testing::http::{Client, Method, StatusCode};
+use functional_testing::response::AppStatusResponse;
 
 use crate::common::server_handle;
 
@@ -8,25 +9,14 @@ use crate::common::server_handle;
 async fn returns_status() {
     let _server_handle = server_handle();
 
-    let resp = Client::new()
+    let response = Client::new()
         .request(Method::GET, "http://localhost:3030/admin/status")
         .send()
         .await
         .unwrap();
 
-    assert_that(&resp.status()).is_equal_to(StatusCode::OK);
+    assert_that(&response.status()).is_equal_to(StatusCode::OK);
 
-    let status_response: StatusResponse = resp.json().await.unwrap();
-    assert_that(&status_response).is_equal_to(&StatusResponse::new("OK".to_string()));
-}
-
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
-struct StatusResponse {
-    status: String,
-}
-
-impl StatusResponse {
-    fn new(status: String) -> Self {
-        StatusResponse { status }
-    }
+    let app_status: AppStatusResponse = response.json().await.unwrap();
+    assert_that(&app_status).is_equal_to(&AppStatusResponse::new("OK".to_string()));
 }

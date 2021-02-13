@@ -1,7 +1,12 @@
 use warp::reply::Response;
-use warp::Reply;
+use warp::{Filter, Reply};
 
-pub(crate) fn status_handler() -> StatusResponse {
+pub(crate) fn app_status_filter(
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    warp::get().map(app_status_handler)
+}
+
+fn app_status_handler() -> StatusResponse {
     StatusResponse::new("OK".to_string())
 }
 
