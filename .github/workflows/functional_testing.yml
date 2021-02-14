@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: server/target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-target-ft-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         run: cargo build --manifest-path ./server/crates/functional_testing/Cargo.toml --verbose
       - name: Run tests
