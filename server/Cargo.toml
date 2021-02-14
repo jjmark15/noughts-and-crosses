@@ -21,6 +21,7 @@ warp = "0.3"
 functional_testing = { path = "./crates/functional_testing" }
 
 # crates.io deps
+lazy_static = "1.4"
 spectral = "0.6"
 
 [workspace]

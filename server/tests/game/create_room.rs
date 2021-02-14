@@ -1,9 +1,9 @@
 use spectral::prelude::*;
 
 use functional_testing::http::{Client, Method, StatusCode};
+use functional_testing::response::CreatedRoomResponse;
 
 use crate::common::server_handle;
-use functional_testing::response::CreatedRoomResponse;
 
 #[tokio::test]
 async fn creates_room_with_room_id() {
