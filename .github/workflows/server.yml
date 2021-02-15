@@ -72,4 +72,4 @@ jobs:
       - name: Run functional tests
         run: cargo test --test testing --manifest-path ./server/Cargo.toml --verbose
         env:
-          GAME_SERVER_HOST: game-server:3030
+          GAME_SERVER_HOST: localhost:3030
