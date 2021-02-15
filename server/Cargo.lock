@@ -1170,7 +1170,6 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "functional_testing",
- "lazy_static",
  "serde",
  "serde_json",
  "spectral",
