@@ -1,10 +1,27 @@
+use std::thread::sleep;
+use std::time::Duration;
+
 use lazy_static::lazy_static;
 use tokio::task::JoinHandle;
 
+use functional_testing::http::{Client, Method};
 use server::App;
 
-pub(crate) fn server_handle() -> &'static JoinHandle<()> {
-    SERVER_HANDLE.handle()
+pub(crate) async fn server_handle() -> &'static JoinHandle<()> {
+    let handle = SERVER_HANDLE.handle();
+
+    for _i in 0..20 {
+        let response = Client::new()
+            .request(Method::GET, "http://localhost:3030/admin/status")
+            .send()
+            .await;
+
+        if response.is_err() {
+            sleep(Duration::from_millis(250));
+        }
+    }
+
+    handle
 }
 
 struct ServerHandle {

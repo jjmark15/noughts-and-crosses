@@ -7,7 +7,7 @@ use crate::common::server_handle;
 
 #[tokio::test]
 async fn returns_status() {
-    let _server_handle = server_handle();
+    let _server_handle = server_handle().await;
 
     let response = Client::new()
         .request(Method::GET, "http://localhost:3030/admin/status")
