@@ -52,7 +52,7 @@ jobs:
     needs: build-and-push-image
 
     services:
-      server:
+      game-server:
         image: docker.pkg.github.com/jjmark15/noughts-and-crosses/game-server:main
         credentials:
           username: ${{ github.actor }}
@@ -69,3 +69,5 @@ jobs:
         run: cargo build --test testing --manifest-path ./server/Cargo.toml --verbose
       - name: Run functional tests
         run: cargo test --test testing --manifest-path ./server/Cargo.toml --verbose
+        env:
+          GAME_SERVER_HOST: game-server
