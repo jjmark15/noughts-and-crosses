@@ -45,7 +45,7 @@ jobs:
           repository: ${{ github.repository }}/game-server
           tag_with_sha: true
           tag_with_ref: true
-          dockerfile: ./server/Dockerfile
+          path: ./server
 
   ft:
     runs-on: ubuntu-latest
