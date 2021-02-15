@@ -37,7 +37,8 @@ impl App {
     fn game_routes(
         application_service: ApplicationService<VecRoomRepositoryAdapter, RoomFactoryImpl>,
     ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        let create_room = warp::path("room").and(create_room_filter(Arc::new(application_service)));
+        let create_room =
+            warp::path("rooms").and(create_room_filter(Arc::new(application_service)));
 
         warp::any().and(create_room)
     }
