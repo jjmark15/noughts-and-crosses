@@ -42,6 +42,6 @@ jobs:
       - name: Build
         run: cargo build --test testing --manifest-path ./server/Cargo.toml --verbose
       - name: Bring up services
-        run: docker-compose up -d
+        run: docker-compose -f ./server/docker-compose.yml up -d
       - name: Run functional tests
         run: cargo test --test testing --manifest-path ./server/Cargo.toml --verbose
