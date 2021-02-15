@@ -26,6 +26,6 @@ jobs:
           path: server/target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
-        run: cargo build --manifest-path ./server/Cargo.toml --verbose
+        run: cargo build --tests --manifest-path ./server/Cargo.toml --verbose
       - name: Run tests
         run: cargo test --manifest-path ./server/Cargo.toml --verbose
