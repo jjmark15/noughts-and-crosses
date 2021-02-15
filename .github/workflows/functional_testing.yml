@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'server/crates/functional_testing/**'
+      - '.github/functional_testing.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'server/crates/functional_testing/**'
+      - '.github/functional_testing.yml'
 
 env:
   CARGO_TERM_COLOR: always
