@@ -54,6 +54,8 @@ jobs:
     services:
       game-server:
         image: docker.pkg.github.com/jjmark15/noughts-and-crosses/game-server:main
+        ports:
+          - 3030:3030
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -70,4 +72,4 @@ jobs:
       - name: Run functional tests
         run: cargo test --test testing --manifest-path ./server/Cargo.toml --verbose
         env:
-          GAME_SERVER_HOST: game-server
+          GAME_SERVER_HOST: game-server:3030
