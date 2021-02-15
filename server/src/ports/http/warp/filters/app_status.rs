@@ -11,7 +11,7 @@ fn app_status_handler() -> StatusResponse {
 }
 
 #[derive(Debug, serde::Serialize)]
-pub(crate) struct StatusResponse {
+struct StatusResponse {
     status: String,
 }
 

@@ -33,13 +33,13 @@ async fn create_room_handler<RR: RoomRepository, RF: RoomFactory>(
 }
 
 #[derive(Debug)]
-pub(crate) enum CreateRoomResponse {
+enum CreateRoomResponse {
     Success(Uuid),
     Error(RoomPersistenceError),
 }
 
 #[derive(Debug, serde::Serialize)]
-pub(crate) struct CreatedRoomResponse {
+struct CreatedRoomResponse {
     id: Uuid,
 }
 
