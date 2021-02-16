@@ -16,6 +16,8 @@ RUN cargo build --release
 
 FROM alpine:latest
 
+LABEL org.opencontainers.image.source=https://github.com/jjmark15/noughts-and-crosses
+
 ARG APP=/usr/src/app
 
 EXPOSE 3030
