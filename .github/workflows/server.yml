@@ -59,7 +59,7 @@ jobs:
           push: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          tags: jjmark15/nc-game-server:latest
+          tags: jjmark15/noughts-and-crosses:latest
 
   ft:
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
 
     services:
       game-server:
-        image: ghcr.io/jjmark15/nc-game-server:latest
+        image: ghcr.io/jjmark15/noughts-and-crosses:latest
         ports:
           - 3030:3030
         credentials:
