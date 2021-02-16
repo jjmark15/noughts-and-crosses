@@ -36,16 +36,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build container image
-        uses: docker/build-push-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
         with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/game-server
-          tag_with_sha: true
-          tag_with_ref: true
-          path: ./server
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./server
+          pull: true
+          push: true
+          cache-from: type=registry,ref=jjmark15/nc-game-server:latest
+          cache-to: type=inline
+          tags: jjmark15/nc-game-server:latest
 
   ft:
     runs-on: ubuntu-latest
@@ -53,12 +60,12 @@ jobs:
 
     services:
       game-server:
-        image: docker.pkg.github.com/jjmark15/noughts-and-crosses/game-server:main
+        image: ghcr.io/jjmark15/nc-game-server:latest
         ports:
           - 3030:3030
         credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
 
     steps:
       - uses: actions/checkout@v2
