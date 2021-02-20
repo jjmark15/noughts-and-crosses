@@ -3,7 +3,7 @@ use spectral::prelude::*;
 use functional_testing::http::{Client, Method, StatusCode};
 use functional_testing::response::AppStatusResponse;
 
-use crate::common::GAME_SERVER_HOST;
+use crate::helpers::GAME_SERVER_HOST;
 
 #[tokio::test]
 async fn returns_status() {

@@ -75,8 +75,8 @@ jobs:
           path: server/target
           key: ${{ runner.os }}-cargo-build-target-ft-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
-        run: cargo build --test testing --manifest-path ./server/Cargo.toml --verbose
+        run: cargo build --test api --manifest-path ./server/Cargo.toml --verbose
       - name: Run functional tests
-        run: cargo test --test testing --manifest-path ./server/Cargo.toml --verbose
+        run: cargo test --test api --manifest-path ./server/Cargo.toml --verbose
         env:
           GAME_SERVER_HOST: localhost:3030
