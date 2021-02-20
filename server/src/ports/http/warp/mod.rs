@@ -5,6 +5,7 @@ use warp::Reply;
 pub(crate) use filters::*;
 
 mod filters;
+mod responses;
 
 pub(crate) fn json_reply_with_status<T: serde::Serialize>(
     body: &T,

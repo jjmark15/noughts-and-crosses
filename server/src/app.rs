@@ -5,7 +5,9 @@ use warp::Filter;
 use crate::application::ApplicationServiceImpl;
 use crate::domain::room::RoomFactoryImpl;
 use crate::domain::user::UserFactoryImpl;
-use crate::ports::http::warp::{app_status_filter, create_room_filter, register_user_filter};
+use crate::ports::http::warp::{
+    app_status_filter, create_room_filter, get_user_name_filter, register_user_filter,
+};
 use crate::ports::persistence::vec::{VecRoomRepositoryAdapter, VecUserRepositoryAdapter};
 
 type ApplicationServiceAlias = ApplicationServiceImpl<
@@ -46,9 +48,12 @@ impl App {
         let application_service = Arc::new(application_service);
 
         let create_room = warp::path("rooms").and(create_room_filter(application_service.clone()));
-        let register_user = warp::path("users").and(register_user_filter(application_service));
+        let users = warp::path("users").and(
+            register_user_filter(application_service.clone())
+                .or(get_user_name_filter(application_service)),
+        );
 
-        warp::any().and(create_room).or(register_user)
+        warp::any().and(create_room).or(users)
     }
 
     fn application_service() -> ApplicationServiceAlias {

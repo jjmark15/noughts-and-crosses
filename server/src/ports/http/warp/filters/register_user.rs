@@ -7,6 +7,7 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, UserPersistenceError};
+use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
 pub(crate) fn register_user_filter<AS>(
@@ -55,7 +56,9 @@ impl Reply for RegisterUserResponse {
             RegisterUserResponse::Success(id) => {
                 json_reply_with_status(&RegisteredUserResponse::new(id), StatusCode::CREATED)
             }
-            RegisterUserResponse::Error(err) => match err.cause() {},
+            RegisterUserResponse::Error(err) => match err.cause() {
+                DomainUserPersistenceError::UserNotFound(_) => unimplemented!(),
+            },
         }
     }
 }

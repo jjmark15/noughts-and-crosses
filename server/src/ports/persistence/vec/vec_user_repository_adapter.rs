@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use crate::domain::user::{User, UserPersistenceError, UserRepository};
 
@@ -25,18 +26,33 @@ impl UserRepository for VecUserRepositoryAdapter {
         vec.push(StoredUser::from_user(user));
         Ok(())
     }
+
+    async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
+        let vec = self.inner.lock().await;
+        let user = vec
+            .iter()
+            .find(|user| user.id == id)
+            .ok_or(UserPersistenceError::UserNotFound(id))?;
+        Ok(user.into())
+    }
 }
 
 struct StoredUser {
-    _id: uuid::Uuid,
-    _name: String,
+    id: uuid::Uuid,
+    name: String,
 }
 
 impl StoredUser {
     fn from_user(user: &User) -> Self {
         StoredUser {
-            _id: user.id(),
-            _name: user.name().to_string(),
+            id: user.id(),
+            name: user.name().to_string(),
         }
+    }
+}
+
+impl From<&StoredUser> for User {
+    fn from(user: &StoredUser) -> Self {
+        User::new(user.id, user.name.to_string())
     }
 }

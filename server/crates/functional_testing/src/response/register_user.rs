@@ -9,4 +9,8 @@ impl RegisteredUserResponse {
     pub fn new(id: Uuid) -> Self {
         RegisteredUserResponse { id }
     }
+
+    pub fn id(&self) -> Uuid {
+        self.id
+    }
 }

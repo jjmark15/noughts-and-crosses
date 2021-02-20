@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use reqwest::Method;
+use uuid::Uuid;
 
 pub struct AppClient {
     server_address: String,
@@ -50,5 +51,41 @@ impl AppClient {
         );
 
         self.build_and_send_request(request).await
+    }
+
+    pub async fn user_name(&self, user_id: impl Into<UuidOrString>) -> reqwest::Response {
+        let request = self.http_client.request(
+            Method::GET,
+            self.base_request_url(format!("/game/users/{}", user_id.into().id_string()).as_str())
+                .as_str(),
+        );
+
+        self.build_and_send_request(request).await
+    }
+}
+
+pub enum UuidOrString {
+    Uuid(Uuid),
+    String(String),
+}
+
+impl UuidOrString {
+    fn id_string(&self) -> String {
+        match self {
+            UuidOrString::String(s) => s.to_string(),
+            UuidOrString::Uuid(uuid) => uuid.to_string(),
+        }
+    }
+}
+
+impl From<String> for UuidOrString {
+    fn from(s: String) -> Self {
+        UuidOrString::String(s)
+    }
+}
+
+impl From<Uuid> for UuidOrString {
+    fn from(id: Uuid) -> Self {
+        UuidOrString::Uuid(id)
     }
 }
