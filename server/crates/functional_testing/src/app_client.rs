@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use reqwest::Method;
 
 pub struct AppClient {
@@ -36,6 +38,16 @@ impl AppClient {
         let request = self
             .http_client
             .request(Method::POST, self.base_request_url("/game/rooms").as_str());
+
+        self.build_and_send_request(request).await
+    }
+
+    pub async fn register_user<S: AsRef<str> + Display>(&self, name: S) -> reqwest::Response {
+        let request = self.http_client.request(
+            Method::POST,
+            self.base_request_url(format!("/game/users/{}", name).as_str())
+                .as_str(),
+        );
 
         self.build_and_send_request(request).await
     }

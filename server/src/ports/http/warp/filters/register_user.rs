@@ -6,12 +6,12 @@ use warp::http::StatusCode;
 use warp::reply::Response;
 use warp::{Filter, Reply};
 
-use crate::application::{ApplicationService, RoomPersistenceError};
+use crate::application::{ApplicationService, UserPersistenceError};
 use crate::domain::room::{RoomFactory, RoomRepository};
 use crate::domain::user::{UserFactory, UserRepository};
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
-pub(crate) fn create_room_filter<RR, RF, UR, UF>(
+pub(crate) fn register_user_filter<RR, RF, UR, UF>(
     application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
 where
@@ -22,48 +22,50 @@ where
 {
     warp::post()
         .and(with_application_service(application_service))
-        .and_then(create_room_handler)
+        .and(warp::path!(String))
+        .and_then(register_user_handler)
 }
 
-async fn create_room_handler<
+async fn register_user_handler<
     RR: RoomRepository,
     RF: RoomFactory,
     UR: UserRepository,
     UF: UserFactory,
 >(
     application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
-) -> Result<CreateRoomResponse, Infallible> {
-    let result = application_service.create_game_room().await;
+    user_name: String,
+) -> Result<RegisterUserResponse, Infallible> {
+    let result = application_service.register_user(user_name).await;
     match result {
-        Ok(id) => Ok(CreateRoomResponse::Success(id)),
-        Err(err) => Ok(CreateRoomResponse::Error(err)),
+        Ok(id) => Ok(RegisterUserResponse::Success(id)),
+        Err(err) => Ok(RegisterUserResponse::Error(err)),
     }
 }
 
 #[derive(Debug)]
-enum CreateRoomResponse {
+enum RegisterUserResponse {
     Success(Uuid),
-    Error(RoomPersistenceError),
+    Error(UserPersistenceError),
 }
 
 #[derive(Debug, serde::Serialize)]
-struct CreatedRoomResponse {
+struct RegisteredUserResponse {
     id: Uuid,
 }
 
-impl CreatedRoomResponse {
+impl RegisteredUserResponse {
     fn new(id: Uuid) -> Self {
-        CreatedRoomResponse { id }
+        RegisteredUserResponse { id }
     }
 }
 
-impl Reply for CreateRoomResponse {
+impl Reply for RegisterUserResponse {
     fn into_response(self) -> Response {
         match self {
-            CreateRoomResponse::Success(id) => {
-                json_reply_with_status(&CreatedRoomResponse::new(id), StatusCode::CREATED)
+            RegisterUserResponse::Success(id) => {
+                json_reply_with_status(&RegisteredUserResponse::new(id), StatusCode::CREATED)
             }
-            CreateRoomResponse::Error(err) => match err.cause() {},
+            RegisterUserResponse::Error(err) => match err.cause() {},
         }
     }
 }

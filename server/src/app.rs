@@ -4,8 +4,9 @@ use warp::Filter;
 
 use crate::application::ApplicationService;
 use crate::domain::room::RoomFactoryImpl;
-use crate::ports::http::warp::{app_status_filter, create_room_filter};
-use crate::ports::persistence::vec::VecRoomRepositoryAdapter;
+use crate::domain::user::UserFactoryImpl;
+use crate::ports::http::warp::{app_status_filter, create_room_filter, register_user_filter};
+use crate::ports::persistence::vec::{VecRoomRepositoryAdapter, VecUserRepositoryAdapter};
 
 #[derive(Default)]
 pub struct App;
@@ -18,7 +19,10 @@ impl App {
     pub async fn run(&self) {
         let room_repository = VecRoomRepositoryAdapter::new();
         let room_factory = RoomFactoryImpl::new();
-        let application_service = ApplicationService::new(room_repository, room_factory);
+        let user_repository = VecUserRepositoryAdapter::new();
+        let user_factory = UserFactoryImpl::new();
+        let application_service =
+            ApplicationService::new(room_repository, room_factory, user_repository, user_factory);
 
         let routes = warp::any()
             .and(warp::path("admin").and(Self::admin_routes()))
@@ -35,11 +39,18 @@ impl App {
     }
 
     fn game_routes(
-        application_service: ApplicationService<VecRoomRepositoryAdapter, RoomFactoryImpl>,
+        application_service: ApplicationService<
+            VecRoomRepositoryAdapter,
+            RoomFactoryImpl,
+            VecUserRepositoryAdapter,
+            UserFactoryImpl,
+        >,
     ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        let create_room =
-            warp::path("rooms").and(create_room_filter(Arc::new(application_service)));
+        let application_service = Arc::new(application_service);
 
-        warp::any().and(create_room)
+        let create_room = warp::path("rooms").and(create_room_filter(application_service.clone()));
+        let register_user = warp::path("users").and(register_user_filter(application_service));
+
+        warp::any().and(create_room).or(register_user)
     }
 }

@@ -23,7 +23,7 @@ impl VecRoomRepositoryAdapter {
 impl RoomRepository for VecRoomRepositoryAdapter {
     async fn store(&self, room: &Room) -> Result<(), RoomPersistenceError> {
         let mut vec = self.inner.lock().await;
-        vec.push(*room.id());
+        vec.push(room.id());
         Ok(())
     }
 }

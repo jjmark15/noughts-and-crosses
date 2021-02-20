@@ -15,7 +15,7 @@ impl Room {
         Room { id }
     }
 
-    pub(crate) fn id(&self) -> &Uuid {
-        &self.id
+    pub(crate) fn id(&self) -> Uuid {
+        self.id
     }
 }
