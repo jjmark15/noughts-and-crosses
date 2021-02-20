@@ -66,6 +66,8 @@ jobs:
         credentials:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
+        env:
+          RUST_LOG: info
 
     steps:
       - uses: actions/checkout@v2
