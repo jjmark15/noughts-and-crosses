@@ -5,8 +5,15 @@ use crate::application::UserPersistenceError;
 use crate::domain::room::{RoomFactory, RoomRepository};
 use crate::domain::user::{UserFactory, UserRepository};
 
+#[async_trait::async_trait]
+pub(crate) trait ApplicationService {
+    async fn create_game_room(&self) -> Result<Uuid, RoomPersistenceError>;
+
+    async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError>;
+}
+
 #[derive(Copy, Clone)]
-pub(crate) struct ApplicationService<
+pub(crate) struct ApplicationServiceImpl<
     RR: RoomRepository,
     RF: RoomFactory,
     UR: UserRepository,
@@ -19,7 +26,7 @@ pub(crate) struct ApplicationService<
 }
 
 impl<RR: RoomRepository, RF: RoomFactory, UR: UserRepository, UF: UserFactory>
-    ApplicationService<RR, RF, UR, UF>
+    ApplicationServiceImpl<RR, RF, UR, UF>
 {
     pub(crate) fn new(
         room_repository: RR,
@@ -27,24 +34,30 @@ impl<RR: RoomRepository, RF: RoomFactory, UR: UserRepository, UF: UserFactory>
         user_repository: UR,
         user_factory: UF,
     ) -> Self {
-        ApplicationService {
+        ApplicationServiceImpl {
             room_repository,
             room_factory,
             user_repository,
             user_factory,
         }
     }
+}
 
-    pub(crate) async fn create_game_room(&self) -> Result<Uuid, RoomPersistenceError> {
+#[async_trait::async_trait]
+impl<RR, RF, UR, UF> ApplicationService for ApplicationServiceImpl<RR, RF, UR, UF>
+where
+    RR: RoomRepository + Send + Sync,
+    RF: RoomFactory + Send + Sync,
+    UR: UserRepository + Send + Sync,
+    UF: UserFactory + Send + Sync,
+{
+    async fn create_game_room(&self) -> Result<Uuid, RoomPersistenceError> {
         let room = self.room_factory.create();
         self.room_repository.store(&room).await?;
         Ok(room.id())
     }
 
-    pub(crate) async fn register_user<S: AsRef<str>>(
-        &self,
-        user_name: S,
-    ) -> Result<Uuid, UserPersistenceError> {
+    async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError> {
         let user = self.user_factory.create(user_name);
         self.user_repository.store(&user).await?;
         Ok(user.id())

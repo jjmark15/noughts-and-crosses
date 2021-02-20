@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use warp::Filter;
 
-use crate::application::ApplicationService;
+use crate::application::ApplicationServiceImpl;
 use crate::domain::room::RoomFactoryImpl;
 use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{app_status_filter, create_room_filter, register_user_filter};
@@ -21,8 +21,12 @@ impl App {
         let room_factory = RoomFactoryImpl::new();
         let user_repository = VecUserRepositoryAdapter::new();
         let user_factory = UserFactoryImpl::new();
-        let application_service =
-            ApplicationService::new(room_repository, room_factory, user_repository, user_factory);
+        let application_service = ApplicationServiceImpl::new(
+            room_repository,
+            room_factory,
+            user_repository,
+            user_factory,
+        );
 
         let routes = warp::any()
             .and(warp::path("admin").and(Self::admin_routes()))
@@ -39,7 +43,7 @@ impl App {
     }
 
     fn game_routes(
-        application_service: ApplicationService<
+        application_service: ApplicationServiceImpl<
             VecRoomRepositoryAdapter,
             RoomFactoryImpl,
             VecUserRepositoryAdapter,

@@ -7,18 +7,13 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, UserPersistenceError};
-use crate::domain::room::{RoomFactory, RoomRepository};
-use crate::domain::user::{UserFactory, UserRepository};
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
-pub(crate) fn register_user_filter<RR, RF, UR, UF>(
-    application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
+pub(crate) fn register_user_filter<AS>(
+    application_service: Arc<AS>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
 where
-    RR: RoomRepository + Send + Sync,
-    RF: RoomFactory + Send + Sync,
-    UR: UserRepository + Send + Sync,
-    UF: UserFactory + Send + Sync,
+    AS: ApplicationService + Send + Sync,
 {
     warp::post()
         .and(with_application_service(application_service))
@@ -26,13 +21,8 @@ where
         .and_then(register_user_handler)
 }
 
-async fn register_user_handler<
-    RR: RoomRepository,
-    RF: RoomFactory,
-    UR: UserRepository,
-    UF: UserFactory,
->(
-    application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
+async fn register_user_handler<AS: ApplicationService>(
+    application_service: Arc<AS>,
     user_name: String,
 ) -> Result<RegisterUserResponse, Infallible> {
     let result = application_service.register_user(user_name).await;

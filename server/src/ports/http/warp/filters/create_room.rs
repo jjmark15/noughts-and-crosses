@@ -7,31 +7,21 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, RoomPersistenceError};
-use crate::domain::room::{RoomFactory, RoomRepository};
-use crate::domain::user::{UserFactory, UserRepository};
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
-pub(crate) fn create_room_filter<RR, RF, UR, UF>(
-    application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
+pub(crate) fn create_room_filter<AS>(
+    application_service: Arc<AS>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
 where
-    RR: RoomRepository + Send + Sync,
-    RF: RoomFactory + Send + Sync,
-    UR: UserRepository + Send + Sync,
-    UF: UserFactory + Send + Sync,
+    AS: ApplicationService + Send + Sync,
 {
     warp::post()
         .and(with_application_service(application_service))
         .and_then(create_room_handler)
 }
 
-async fn create_room_handler<
-    RR: RoomRepository,
-    RF: RoomFactory,
-    UR: UserRepository,
-    UF: UserFactory,
->(
-    application_service: Arc<ApplicationService<RR, RF, UR, UF>>,
+async fn create_room_handler<AS: ApplicationService>(
+    application_service: Arc<AS>,
 ) -> Result<CreateRoomResponse, Infallible> {
     let result = application_service.create_game_room().await;
     match result {
