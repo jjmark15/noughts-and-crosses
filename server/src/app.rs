@@ -8,6 +8,13 @@ use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{app_status_filter, create_room_filter, register_user_filter};
 use crate::ports::persistence::vec::{VecRoomRepositoryAdapter, VecUserRepositoryAdapter};
 
+type ApplicationServiceAlias = ApplicationServiceImpl<
+    VecRoomRepositoryAdapter,
+    RoomFactoryImpl,
+    VecUserRepositoryAdapter,
+    UserFactoryImpl,
+>;
+
 #[derive(Default)]
 pub struct App;
 
@@ -17,16 +24,7 @@ impl App {
     }
 
     pub async fn run(&self) {
-        let room_repository = VecRoomRepositoryAdapter::new();
-        let room_factory = RoomFactoryImpl::new();
-        let user_repository = VecUserRepositoryAdapter::new();
-        let user_factory = UserFactoryImpl::new();
-        let application_service = ApplicationServiceImpl::new(
-            room_repository,
-            room_factory,
-            user_repository,
-            user_factory,
-        );
+        let application_service = Self::application_service();
 
         let routes = warp::any()
             .and(warp::path("admin").and(Self::admin_routes()))
@@ -43,12 +41,7 @@ impl App {
     }
 
     fn game_routes(
-        application_service: ApplicationServiceImpl<
-            VecRoomRepositoryAdapter,
-            RoomFactoryImpl,
-            VecUserRepositoryAdapter,
-            UserFactoryImpl,
-        >,
+        application_service: ApplicationServiceAlias,
     ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         let application_service = Arc::new(application_service);
 
@@ -56,5 +49,13 @@ impl App {
         let register_user = warp::path("users").and(register_user_filter(application_service));
 
         warp::any().and(create_room).or(register_user)
+    }
+
+    fn application_service() -> ApplicationServiceAlias {
+        let room_repository = VecRoomRepositoryAdapter::new();
+        let room_factory = RoomFactoryImpl::new();
+        let user_repository = VecUserRepositoryAdapter::new();
+        let user_factory = UserFactoryImpl::new();
+        ApplicationServiceImpl::new(room_repository, room_factory, user_repository, user_factory)
     }
 }
