@@ -1,10 +1,10 @@
 #[derive(Debug, Eq, PartialEq, serde::Deserialize)]
-pub struct AppStatusResponse {
+pub struct AppStatus {
     status: String,
 }
 
-impl AppStatusResponse {
+impl AppStatus {
     pub fn new(status: String) -> Self {
-        AppStatusResponse { status }
+        AppStatus { status }
     }
 }

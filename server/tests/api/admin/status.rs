@@ -1,23 +1,16 @@
 use spectral::prelude::*;
 
-use functional_testing::http::{Client, Method, StatusCode};
-use functional_testing::response::AppStatusResponse;
+use functional_testing::http::StatusCode;
+use functional_testing::response::AppStatus;
 
-use crate::helpers::GAME_SERVER_HOST;
+use crate::helpers::APP_CLIENT;
 
 #[tokio::test]
 async fn returns_status() {
-    let response = Client::new()
-        .request(
-            Method::GET,
-            format!("http://{}/admin/status", GAME_SERVER_HOST.to_string()).as_str(),
-        )
-        .send()
-        .await
-        .unwrap();
+    let response = APP_CLIENT.status().await;
 
     assert_that(&response.status()).is_equal_to(StatusCode::OK);
 
-    let app_status: AppStatusResponse = response.json().await.unwrap();
-    assert_that(&app_status).is_equal_to(&AppStatusResponse::new("OK".to_string()));
+    let app_status: AppStatus = response.json().await.unwrap();
+    assert_that(&app_status).is_equal_to(&AppStatus::new("OK".to_string()));
 }
