@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 
-use functional_testing::app_client::AppClient;
+use functional_testing::AppClient;
 
 lazy_static! {
     static ref APP_CLIENT: AppClient = {
