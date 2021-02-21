@@ -1,7 +1,6 @@
 use spectral::prelude::*;
 
 use functional_testing::http::StatusCode;
-use functional_testing::response::AppStatus;
 
 use crate::helpers::app_client;
 
@@ -11,6 +10,6 @@ async fn returns_status() {
 
     assert_that(&response.status()).is_equal_to(StatusCode::OK);
 
-    let app_status: AppStatus = response.json().await.unwrap();
-    assert_that(&app_status).is_equal_to(&AppStatus::new("OK".to_string()));
+    let app_status: String = response.text().await.unwrap();
+    assert_that(&app_status).is_equal_to(&"OK".to_string());
 }

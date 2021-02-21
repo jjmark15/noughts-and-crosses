@@ -1,3 +1,4 @@
+use warp::http::StatusCode;
 use warp::reply::Response;
 use warp::{Filter, Reply};
 
@@ -6,23 +7,11 @@ pub(crate) fn app_status_filter(
     warp::get().map(app_status_handler)
 }
 
-fn app_status_handler() -> StatusResponse {
-    StatusResponse::new("OK".to_string())
+fn app_status_handler() -> Response {
+    warp::reply::with_status("OK", StatusCode::OK).into_response()
 }
 
 #[derive(Debug, serde::Serialize)]
 struct StatusResponse {
     status: String,
-}
-
-impl StatusResponse {
-    fn new(status: String) -> Self {
-        StatusResponse { status }
-    }
-}
-
-impl Reply for StatusResponse {
-    fn into_response(self) -> Response {
-        warp::reply::json(&self).into_response()
-    }
 }
