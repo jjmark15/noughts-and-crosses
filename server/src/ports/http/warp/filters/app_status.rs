@@ -10,8 +10,3 @@ pub(crate) fn app_status_filter(
 fn app_status_handler() -> Response {
     warp::reply::with_status("OK", StatusCode::OK).into_response()
 }
-
-#[derive(Debug, serde::Serialize)]
-struct StatusResponse {
-    status: String,
-}
