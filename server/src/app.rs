@@ -8,12 +8,13 @@ use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{
     app_status_filter, create_room_filter, get_user_name_filter, register_user_filter,
 };
-use crate::ports::persistence::vec::{VecRoomRepositoryAdapter, VecUserRepositoryAdapter};
+use crate::ports::persistence::map::MapUserRepositoryAdapter;
+use crate::ports::persistence::vec::VecRoomRepositoryAdapter;
 
 type ApplicationServiceAlias = ApplicationServiceImpl<
     VecRoomRepositoryAdapter,
     RoomFactoryImpl,
-    VecUserRepositoryAdapter,
+    MapUserRepositoryAdapter,
     UserFactoryImpl,
 >;
 
@@ -59,7 +60,7 @@ impl App {
     fn application_service() -> ApplicationServiceAlias {
         let room_repository = VecRoomRepositoryAdapter::new();
         let room_factory = RoomFactoryImpl::new();
-        let user_repository = VecUserRepositoryAdapter::new();
+        let user_repository = MapUserRepositoryAdapter::new();
         let user_factory = UserFactoryImpl::new();
         ApplicationServiceImpl::new(room_repository, room_factory, user_repository, user_factory)
     }
