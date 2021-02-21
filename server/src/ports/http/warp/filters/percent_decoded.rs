@@ -2,11 +2,13 @@ use std::convert::Infallible;
 use std::str::FromStr;
 
 #[derive(Clone, Debug)]
-pub struct PercentDecoded {
+pub(crate) struct PercentDecoded {
     s: String,
 }
+
 impl FromStr for PercentDecoded {
     type Err = Infallible;
+
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = percent_encoding::percent_decode_str(s)
@@ -15,6 +17,7 @@ impl FromStr for PercentDecoded {
         Ok(PercentDecoded { s })
     }
 }
+
 impl ToString for PercentDecoded {
     #[inline]
     fn to_string(&self) -> String {
