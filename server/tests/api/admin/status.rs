@@ -6,7 +6,9 @@ use crate::helpers::app_client;
 
 #[tokio::test]
 async fn returns_status() {
-    let response = app_client().status().await;
+    let app_client = app_client();
+
+    let response = app_client.status().await;
 
     assert_that(&response.status()).is_equal_to(StatusCode::OK);
 
