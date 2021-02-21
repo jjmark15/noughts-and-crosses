@@ -8,13 +8,34 @@ use crate::helpers::app_client;
 
 #[tokio::test]
 async fn registers_user_with_name() {
-    let response = app_client().register_user("Name").await;
+    let register_response = app_client().register_user("Name").await;
 
-    assert_that(&response.status()).is_equal_to(StatusCode::CREATED);
+    assert_that(&register_response.status()).is_equal_to(StatusCode::CREATED);
 
-    asserting("response contains a valid Uuid Id")
-        .that(&response.json::<RegisteredUserResponse>().await)
-        .is_ok();
+    let id = register_response
+        .json::<RegisteredUserResponse>()
+        .await
+        .expect("Response should contain a valid Uuid Id")
+        .id();
+    let name = app_client().user_name(id).await.text().await.unwrap();
+
+    assert_that(&name).is_equal_to(&"Name".to_string());
+}
+
+#[tokio::test]
+async fn registers_user_with_name_including_spaces() {
+    let register_response = app_client().register_user("First Last").await;
+
+    assert_that(&register_response.status()).is_equal_to(StatusCode::CREATED);
+
+    let id = register_response
+        .json::<RegisteredUserResponse>()
+        .await
+        .expect("Response should contain a valid Uuid Id")
+        .id();
+    let name = app_client().user_name(id).await.text().await.unwrap();
+
+    assert_that(&name).is_equal_to(&"First Last".to_string());
 }
 
 #[tokio::test]

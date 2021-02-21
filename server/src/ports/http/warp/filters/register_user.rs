@@ -8,7 +8,7 @@ use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, UserPersistenceError};
 use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
-use crate::ports::http::warp::{json_reply_with_status, with_application_service};
+use crate::ports::http::warp::{json_reply_with_status, with_application_service, PercentDecoded};
 
 pub(crate) fn register_user_filter<AS>(
     application_service: Arc<AS>,
@@ -18,15 +18,17 @@ where
 {
     warp::post()
         .and(with_application_service(application_service))
-        .and(warp::path!(String))
+        .and(warp::path!(PercentDecoded))
         .and_then(register_user_handler)
 }
 
 async fn register_user_handler<AS: ApplicationService>(
     application_service: Arc<AS>,
-    user_name: String,
+    decoded_user_name: PercentDecoded,
 ) -> Result<RegisterUserResponse, Infallible> {
-    let result = application_service.register_user(user_name).await;
+    let result = application_service
+        .register_user(decoded_user_name.to_string())
+        .await;
     match result {
         Ok(id) => Ok(RegisterUserResponse::Success(id)),
         Err(err) => Ok(RegisterUserResponse::Error(err)),

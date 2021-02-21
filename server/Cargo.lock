@@ -1229,6 +1229,7 @@ dependencies = [
  "env_logger",
  "functional_testing",
  "lazy_static",
+ "percent-encoding",
  "serde",
  "serde_json",
  "spectral",
