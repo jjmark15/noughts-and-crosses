@@ -6,6 +6,8 @@ use crate::domain::user::User;
 pub(crate) trait UserRepository {
     async fn store(&self, user: &User) -> Result<(), UserPersistenceError>;
 
+    async fn update(&self, user: &User) -> Result<(), UserPersistenceError>;
+
     async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError>;
 }
 

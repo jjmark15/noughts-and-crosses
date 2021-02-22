@@ -16,6 +16,6 @@ impl UserFactoryImpl {
 
 impl UserFactory for UserFactoryImpl {
     fn create<S: AsRef<str>>(&self, user_name: S) -> User {
-        User::new(Uuid::new_v4(), user_name.as_ref().to_string())
+        User::new(Uuid::new_v4(), user_name.as_ref().to_string(), None)
     }
 }

@@ -1,17 +1,12 @@
 use crate::domain::room::RoomPersistenceError as DomainRoomPersistenceError;
 use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
+use crate::domain::RoomAssignmentError;
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-pub(crate) struct RoomPersistenceError {
+pub(crate) struct RoomCreationError {
     #[from]
     cause: DomainRoomPersistenceError,
-}
-
-impl RoomPersistenceError {
-    pub(crate) fn cause(&self) -> DomainRoomPersistenceError {
-        self.cause
-    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -25,4 +20,16 @@ impl UserPersistenceError {
     pub(crate) fn cause(&self) -> DomainUserPersistenceError {
         self.cause
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum JoinRoomError {
+    #[error(transparent)]
+    RoomAssignment(#[from] RoomAssignmentError),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum LeaveRoomError {
+    #[error(transparent)]
+    RoomAssignment(#[from] RoomAssignmentError),
 }
