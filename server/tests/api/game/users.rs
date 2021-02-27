@@ -63,8 +63,7 @@ async fn returns_name_given_user_id() {
 #[tokio::test]
 async fn get_user_name_fails_if_user_with_id_does_not_exist() {
     let app_client = app_client();
-    let id_string = "00000000-0000-0000-0000-000000000000";
-    let id = Uuid::parse_str(id_string).unwrap();
+    let id = Uuid::nil();
 
     let response = app_client.user_name(id).await;
 
@@ -76,7 +75,7 @@ async fn get_user_name_fails_if_user_with_id_does_not_exist() {
             .unwrap()
             .cause(),
     )
-    .is_equal_to(&format!("Could not find user with id: {}", id_string));
+    .is_equal_to(&"Could not find user with id: 00000000-0000-0000-0000-000000000000".to_string());
 }
 
 #[tokio::test]
