@@ -1,2 +1,2 @@
 $env:RUST_LOG = 'server=debug,warp=info'
-cargo watch -i tests/ -cx 'run --bin server'
+cargo watch -i tests/ -d 2 -cx 'run --bin server'
