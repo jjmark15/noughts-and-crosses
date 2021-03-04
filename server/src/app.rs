@@ -1,3 +1,4 @@
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
 use warp::Filter;
@@ -39,7 +40,8 @@ impl App {
             .or(warp::path("game")
                 .and(Self::game_routes(application_service, user_client_provider)));
 
-        warp::serve(routes).run(([0, 0, 0, 0], 3030)).await;
+        let socket_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 3030);
+        warp::serve(routes).run(socket_address).await;
     }
 
     fn admin_routes() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
