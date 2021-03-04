@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tokio::sync::Mutex;
+use parking_lot::Mutex;
 use uuid::Uuid;
 
 use crate::domain::room::{Room, RoomPersistenceError, RoomRepository};
@@ -22,7 +22,7 @@ impl VecRoomRepositoryAdapter {
 #[async_trait::async_trait]
 impl RoomRepository for VecRoomRepositoryAdapter {
     async fn store(&self, room: &Room) -> Result<(), RoomPersistenceError> {
-        let mut vec = self.inner.lock().await;
+        let mut vec = self.inner.lock();
         vec.push(room.id());
         Ok(())
     }

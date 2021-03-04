@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use parking_lot::Mutex;
 use tokio::sync::mpsc::Sender;
-use tokio::sync::Mutex;
 use uuid::Uuid;
 use warp::ws::Message;
 
@@ -23,12 +23,12 @@ impl WsUserClientProviderAdapter {
     }
 
     pub(crate) async fn put(&self, user_client: WsUserClientAdapter) {
-        let mut map = self.inner.lock().await;
+        let mut map = self.inner.lock();
         map.insert(user_client.user_id(), user_client.transmitter());
     }
 
     pub(crate) async fn remove(&self, user_id: Uuid) {
-        let mut map = self.inner.lock().await;
+        let mut map = self.inner.lock();
         map.remove(&user_id);
     }
 }
@@ -38,7 +38,7 @@ impl UserClientProvider for WsUserClientProviderAdapter {
     type UserClient = WsUserClientAdapter;
 
     async fn get(&self, user_id: Uuid) -> Result<Self::UserClient, UserClientProviderError> {
-        let map = self.inner.lock().await;
+        let map = self.inner.lock();
         let transmitter = map
             .get(&user_id)
             .ok_or(UserClientProviderError::UserClientNotAvailable)?

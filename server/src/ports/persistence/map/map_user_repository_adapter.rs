@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use tokio::sync::Mutex;
+use parking_lot::Mutex;
 use uuid::Uuid;
 
 use crate::domain::user::{User, UserPersistenceError, UserRepository};
@@ -23,7 +23,7 @@ impl MapUserRepositoryAdapter {
 #[async_trait::async_trait]
 impl UserRepository for MapUserRepositoryAdapter {
     async fn store(&self, user: &User) -> Result<(), UserPersistenceError> {
-        let mut map = self.inner.lock().await;
+        let mut map = self.inner.lock();
         map.insert(user.id(), user.into());
         Ok(())
     }
@@ -34,7 +34,7 @@ impl UserRepository for MapUserRepositoryAdapter {
     }
 
     async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
-        let map = self.inner.lock().await;
+        let map = self.inner.lock();
         let stored_user = map.get(&id).ok_or(UserPersistenceError::UserNotFound(id))?;
         let user = User::new(id, stored_user.name.to_string(), stored_user.room_id);
         Ok(user)
