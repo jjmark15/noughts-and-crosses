@@ -23,8 +23,8 @@ impl AppClient {
         }
     }
 
-    fn base_http_request_url(&self, path: &str) -> String {
-        format!("http://{}{}", self.server_address.as_str(), path)
+    fn http_request_base_url(&self, path: &str) -> Result<Url, ParseError> {
+        Url::parse(format!("http://{}{}", self.server_address.as_str(), path).as_str())
     }
 
     fn websockets_connection_url(&self, path: &str) -> Result<Url, ParseError> {
@@ -41,7 +41,7 @@ impl AppClient {
     pub async fn status(&self) -> reqwest::Response {
         let request = self.http_client.request(
             Method::GET,
-            self.base_http_request_url("/admin/status").as_str(),
+            self.http_request_base_url("/admin/status").unwrap(),
         );
 
         self.build_and_send_request(request).await
@@ -68,8 +68,8 @@ impl AppClient {
     pub async fn register_user<S: AsRef<str> + Display>(&self, name: S) -> reqwest::Response {
         let request = self.http_client.request(
             Method::POST,
-            self.base_http_request_url(format!("/game/users/{}", name).as_str())
-                .as_str(),
+            self.http_request_base_url(format!("/game/users/{}", name).as_str())
+                .unwrap(),
         );
 
         self.build_and_send_request(request).await
@@ -78,10 +78,10 @@ impl AppClient {
     pub async fn user_name(&self, user_id: impl Into<UuidOrString>) -> reqwest::Response {
         let request = self.http_client.request(
             Method::GET,
-            self.base_http_request_url(
+            self.http_request_base_url(
                 format!("/game/users/{}", user_id.into().id_string()).as_str(),
             )
-            .as_str(),
+            .unwrap(),
         );
 
         self.build_and_send_request(request).await
