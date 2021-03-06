@@ -8,8 +8,8 @@ use crate::domain::room::RoomFactoryImpl;
 use crate::domain::user::UserFactoryImpl;
 use crate::domain::RoomAssignmentServiceImpl;
 use crate::ports::http::warp::{
-    app_status_filter, get_user_name_filter, join_new_room_filter, register_user_filter,
-    WsUserClientProviderAdapter,
+    app_status_filter, create_room_filter, get_user_name_filter, join_room_filter,
+    register_user_filter, WsUserClientProviderAdapter,
 };
 use crate::ports::persistence::map::MapUserRepositoryAdapter;
 use crate::ports::persistence::vec::VecRoomRepositoryAdapter;
@@ -57,16 +57,17 @@ impl App {
     ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         let application_service = Arc::new(application_service);
 
-        let join_new_room = warp::path::path("rooms").and(join_new_room_filter(
-            application_service.clone(),
-            user_client_provider,
-        ));
+        let create_room = create_room_filter(application_service.clone()).and(warp::path::end());
+        let join_room = join_room_filter(application_service.clone(), user_client_provider)
+            .and(warp::path::end());
+        let rooms = warp::path("rooms").and(create_room.or(join_room));
+
         let users = warp::path("users").and(
             register_user_filter(application_service.clone())
                 .or(get_user_name_filter(application_service)),
         );
 
-        warp::any().and(users).or(join_new_room)
+        warp::any().and(users).or(rooms)
     }
 
     fn application_service(

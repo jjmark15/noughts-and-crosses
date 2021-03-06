@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 
-use functional_testing::response::RegisteredUserResponse;
+use functional_testing::response::{CreateRoomResponse, RegisteredUserResponse};
 use functional_testing::AppClient;
 use uuid::Uuid;
 
@@ -25,4 +25,15 @@ pub async fn create_user(app_client: &AppClient) -> Uuid {
         .await
         .unwrap()
         .id()
+}
+
+pub async fn create_room(app_client: &AppClient, user_id: Uuid) -> Uuid {
+    app_client
+        .create_room(user_id)
+        .await
+        .json::<CreateRoomResponse>()
+        .await
+        .unwrap()
+        .room_id()
+        .unwrap()
 }

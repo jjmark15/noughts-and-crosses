@@ -47,11 +47,26 @@ impl AppClient {
         self.build_and_send_request(request).await
     }
 
-    pub async fn join_new_room(
+    pub async fn create_room(&self, user_id: Uuid) -> reqwest::Response {
+        let request = self
+            .http_client
+            .request(
+                Method::POST,
+                self.http_request_base_url("/game/rooms").unwrap(),
+            )
+            .header("user-id", user_id.to_string());
+
+        self.build_and_send_request(request).await
+    }
+
+    pub async fn join_room(
         &mut self,
         user_id: Uuid,
+        room_id: Uuid,
     ) -> TungsteniteResult<TungsteniteResponse<()>> {
-        let connection_url = self.websockets_connection_url("/game/rooms").unwrap();
+        let connection_url = self
+            .websockets_connection_url(format!("/game/rooms/{}/members", room_id).as_str())
+            .unwrap();
 
         let (socket, response) = connect_async(
             tokio_tungstenite::tungstenite::http::Request::builder()

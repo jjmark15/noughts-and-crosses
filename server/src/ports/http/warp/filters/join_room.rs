@@ -10,14 +10,14 @@ use warp::reply::Response;
 use warp::ws::WebSocket;
 use warp::{Filter, Reply};
 
-use crate::application::{ApplicationService, JoinRoomError, RoomCreationError};
+use crate::application::{ApplicationService, JoinRoomError};
 use crate::domain::RoomAssignmentError;
 use crate::ports::http::warp::{
     with_application_service, with_user_client_provider, WsUserClientAdapter,
     WsUserClientProviderAdapter,
 };
 
-pub(crate) fn join_new_room_filter<AS>(
+pub(crate) fn join_room_filter<AS>(
     application_service: Arc<AS>,
     user_client_provider: Arc<WsUserClientProviderAdapter>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
@@ -26,6 +26,7 @@ where
 {
     warp::any()
         .and(warp::header("user-id"))
+        .and(warp::path!(Uuid / "members"))
         .and(warp::ws())
         .and(with_application_service(application_service))
         .and(with_user_client_provider(user_client_provider))
@@ -34,6 +35,7 @@ where
 
 async fn handler<AS>(
     user_id: Uuid,
+    room_id: Uuid,
     ws: warp::ws::Ws,
     application_service: Arc<AS>,
     user_client_provider: Arc<WsUserClientProviderAdapter>,
@@ -41,11 +43,6 @@ async fn handler<AS>(
 where
     AS: ApplicationService + Send + Sync + 'static,
 {
-    let room_id = match application_service.create_room().await {
-        Ok(room_id) => room_id,
-        Err(err) => return Ok(create_room_error_response(err)),
-    };
-
     let connected_application_service = application_service.clone();
     let reply = ws.on_upgrade(move |ws| {
         user_connected(
@@ -61,7 +58,7 @@ where
         return Ok(join_room_error_response(err));
     }
 
-    Ok(warp::reply::with_header(reply, "room-id", room_id.to_string()).into_response())
+    Ok(reply.into_response())
 }
 
 async fn user_connected<AS>(
@@ -133,10 +130,6 @@ fn join_room_error_response(err: JoinRoomError) -> Response {
         },
     };
     warp::reply::with_status(warp::reply(), status_code).into_response()
-}
-
-fn create_room_error_response(_err: RoomCreationError) -> Response {
-    warp::reply::with_status(warp::reply(), StatusCode::INTERNAL_SERVER_ERROR).into_response()
 }
 
 async fn join_room<AS>(
