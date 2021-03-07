@@ -11,10 +11,7 @@ async fn join_room() {
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
 
-    app_client
-        .join_room(user_id, room_id)
-        .await
-        .expect("Failed to join room");
+    assert_that(&app_client.join_room(user_id, room_id).await).is_ok();
 
     app_client.close_socket_connection().await;
 }
