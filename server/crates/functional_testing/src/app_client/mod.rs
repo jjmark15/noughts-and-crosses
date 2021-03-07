@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use reqwest::Method;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::http::Response as TungsteniteResponse;
@@ -7,6 +5,10 @@ use tokio_tungstenite::tungstenite::Result as TungsteniteResult;
 use tokio_tungstenite::{connect_async, WebSocketStream};
 use url::{ParseError, Url};
 use uuid::Uuid;
+
+use crate::app_client::routes::Route;
+
+mod routes;
 
 pub struct AppClient {
     server_address: String,
@@ -23,12 +25,19 @@ impl AppClient {
         }
     }
 
-    fn http_request_base_url(&self, path: &str) -> Result<Url, ParseError> {
-        Url::parse(format!("http://{}{}", self.server_address.as_str(), path).as_str())
+    fn http_request_base_url(&self, route: Route) -> Result<Url, ParseError> {
+        Url::parse(
+            format!(
+                "http://{}/{}",
+                self.server_address.as_str(),
+                route.url_path()
+            )
+            .as_str(),
+        )
     }
 
-    fn websockets_connection_url(&self, path: &str) -> Result<Url, ParseError> {
-        Url::parse(format!("ws://{}{}", self.server_address.as_str(), path).as_str())
+    fn websockets_connection_url(&self, route: Route) -> Result<Url, ParseError> {
+        Url::parse(format!("ws://{}/{}", self.server_address.as_str(), route.url_path()).as_str())
     }
 
     async fn build_and_send_request(
@@ -41,7 +50,7 @@ impl AppClient {
     pub async fn status(&self) -> reqwest::Response {
         let request = self.http_client.request(
             Method::GET,
-            self.http_request_base_url("/admin/status").unwrap(),
+            self.http_request_base_url(Route::Status).unwrap(),
         );
 
         self.build_and_send_request(request).await
@@ -52,7 +61,7 @@ impl AppClient {
             .http_client
             .request(
                 Method::POST,
-                self.http_request_base_url("/game/rooms").unwrap(),
+                self.http_request_base_url(Route::CreateRoom).unwrap(),
             )
             .header("user-id", user_id.to_string());
 
@@ -65,7 +74,7 @@ impl AppClient {
         room_id: Uuid,
     ) -> TungsteniteResult<TungsteniteResponse<()>> {
         let connection_url = self
-            .websockets_connection_url(format!("/game/rooms/{}/members", room_id).as_str())
+            .websockets_connection_url(Route::JoinRoom(room_id))
             .unwrap();
 
         let (socket, response) = connect_async(
@@ -80,23 +89,21 @@ impl AppClient {
         Ok(response)
     }
 
-    pub async fn register_user<S: AsRef<str> + Display>(&self, name: S) -> reqwest::Response {
+    pub async fn register_user(&self, name: impl ToString) -> reqwest::Response {
         let request = self.http_client.request(
             Method::POST,
-            self.http_request_base_url(format!("/game/users/{}", name).as_str())
+            self.http_request_base_url(Route::RegisterUser(name.to_string()))
                 .unwrap(),
         );
 
         self.build_and_send_request(request).await
     }
 
-    pub async fn user_name(&self, user_id: impl Into<UuidOrString>) -> reqwest::Response {
+    pub async fn user_name(&self, user_id: impl ToString) -> reqwest::Response {
         let request = self.http_client.request(
             Method::GET,
-            self.http_request_base_url(
-                format!("/game/users/{}", user_id.into().id_string()).as_str(),
-            )
-            .unwrap(),
+            self.http_request_base_url(Route::UserName(user_id.to_string()))
+                .unwrap(),
         );
 
         self.build_and_send_request(request).await
@@ -107,31 +114,5 @@ impl AppClient {
             socket.close(None).await.unwrap();
         }
         self.socket_connection = None;
-    }
-}
-
-pub enum UuidOrString {
-    Uuid(Uuid),
-    String(String),
-}
-
-impl UuidOrString {
-    fn id_string(&self) -> String {
-        match self {
-            UuidOrString::String(s) => s.to_string(),
-            UuidOrString::Uuid(uuid) => uuid.to_string(),
-        }
-    }
-}
-
-impl From<String> for UuidOrString {
-    fn from(s: String) -> Self {
-        UuidOrString::String(s)
-    }
-}
-
-impl From<Uuid> for UuidOrString {
-    fn from(id: Uuid) -> Self {
-        UuidOrString::Uuid(id)
     }
 }
