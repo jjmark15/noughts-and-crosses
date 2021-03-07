@@ -11,7 +11,7 @@ use warp::ws::WebSocket;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, JoinRoomError};
-use crate::domain::RoomAssignmentError;
+use crate::domain::room::RoomAssignmentError;
 use crate::ports::http::warp::{
     with_application_service, with_user_client_provider, WsUserClientAdapter,
     WsUserClientProviderAdapter,

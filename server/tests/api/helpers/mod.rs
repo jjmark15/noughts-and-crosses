@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
+use uuid::Uuid;
 
 use functional_testing::response::{CreateRoomResponse, RegisteredUserResponse};
 use functional_testing::AppClient;
-use uuid::Uuid;
 
 lazy_static! {
     static ref GAME_SERVER_HOST: String = {
@@ -37,4 +37,11 @@ pub async fn create_room(app_client: &AppClient, user_id: Uuid) -> Uuid {
         .unwrap()
         .room_id()
         .unwrap()
+}
+
+pub async fn join_room(app_client: &mut AppClient, user_id: Uuid, room_id: Uuid) {
+    app_client
+        .join_room(user_id, room_id)
+        .await
+        .expect("Failed to join room");
 }

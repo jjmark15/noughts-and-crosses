@@ -16,6 +16,6 @@ impl RoomFactoryImpl {
 
 impl RoomFactory for RoomFactoryImpl {
     fn create(&self) -> Room {
-        Room::new(Uuid::new_v4())
+        Room::new(Uuid::new_v4(), None)
     }
 }

@@ -3,10 +3,9 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::application::error::RoomCreationError;
-use crate::application::{JoinRoomError, LeaveRoomError, UserPersistenceError};
-use crate::domain::room::{RoomFactory, RoomRepository};
+use crate::application::{JoinRoomError, LeaveRoomError, NewGameError, UserPersistenceError};
+use crate::domain::room::{RoomFactory, RoomManager, RoomRepository};
 use crate::domain::user::{UserClientProvider, UserFactory, UserRepository};
-use crate::domain::RoomAssignmentService;
 
 #[async_trait::async_trait]
 pub(crate) trait ApplicationService {
@@ -15,6 +14,8 @@ pub(crate) trait ApplicationService {
     async fn get_user_name(&self, user_id: Uuid) -> Result<String, UserPersistenceError>;
 
     async fn create_room(&self) -> Result<Uuid, RoomCreationError>;
+
+    async fn start_new_game(&self, room_id: Uuid, user_id: Uuid) -> Result<(), NewGameError>;
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError>;
 
@@ -28,14 +29,14 @@ pub(crate) struct ApplicationServiceImpl<
     UR: UserRepository,
     UF: UserFactory,
     UCP: UserClientProvider,
-    RAS: RoomAssignmentService,
+    RM: RoomManager,
 > {
-    room_repository: RR,
+    room_repository: Arc<RR>,
     room_factory: RF,
     user_repository: Arc<UR>,
     user_factory: UF,
     user_client_provider: Arc<UCP>,
-    room_assignment_service: RAS,
+    room_manager: RM,
 }
 
 impl<
@@ -44,16 +45,16 @@ impl<
         UR: UserRepository,
         UF: UserFactory,
         UCP: UserClientProvider,
-        RAS: RoomAssignmentService,
-    > ApplicationServiceImpl<RR, RF, UR, UF, UCP, RAS>
+        RM: RoomManager,
+    > ApplicationServiceImpl<RR, RF, UR, UF, UCP, RM>
 {
     pub(crate) fn new(
-        room_repository: RR,
+        room_repository: Arc<RR>,
         room_factory: RF,
         user_repository: Arc<UR>,
         user_factory: UF,
         user_client_provider: Arc<UCP>,
-        room_assignment_service: RAS,
+        room_manager: RM,
     ) -> Self {
         ApplicationServiceImpl {
             room_repository,
@@ -61,21 +62,20 @@ impl<
             user_repository,
             user_factory,
             user_client_provider,
-            room_assignment_service,
+            room_manager,
         }
     }
 }
 
 #[async_trait::async_trait]
-impl<RR, RF, UR, UF, UCP, RAS> ApplicationService
-    for ApplicationServiceImpl<RR, RF, UR, UF, UCP, RAS>
+impl<RR, RF, UR, UF, UCP, RM> ApplicationService for ApplicationServiceImpl<RR, RF, UR, UF, UCP, RM>
 where
     RR: RoomRepository + Send + Sync,
     RF: RoomFactory + Send + Sync,
     UR: UserRepository + Send + Sync,
     UF: UserFactory + Send + Sync,
     UCP: UserClientProvider + Send + Sync,
-    RAS: RoomAssignmentService + Send + Sync,
+    RM: RoomManager + Send + Sync,
 {
     async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError> {
         let user = self.user_factory.create(user_name);
@@ -95,15 +95,20 @@ where
         Ok(room.id())
     }
 
+    async fn start_new_game(&self, room_id: Uuid, user_id: Uuid) -> Result<(), NewGameError> {
+        self.room_manager
+            .start_new_game(room_id, user_id)
+            .await
+            .map_err(NewGameError::from)
+    }
+
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError> {
-        self.room_assignment_service
-            .assign_user(user_id, room_id)
-            .await?;
+        self.room_manager.assign_user(user_id, room_id).await?;
         Ok(())
     }
 
     async fn leave_room(&self, user_id: Uuid) -> Result<(), LeaveRoomError> {
-        self.room_assignment_service.unassign_user(user_id).await?;
+        self.room_manager.unassign_user(user_id).await?;
         Ok(())
     }
 }

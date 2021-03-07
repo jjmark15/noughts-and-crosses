@@ -89,6 +89,19 @@ impl AppClient {
         Ok(response)
     }
 
+    pub async fn start_new_game(&self, user_id: Uuid, room_id: Uuid) -> reqwest::Response {
+        let request = self
+            .http_client
+            .request(
+                Method::POST,
+                self.http_request_base_url(Route::StartNewGame).unwrap(),
+            )
+            .header("user-id", user_id.to_string())
+            .header("room-id", room_id.to_string());
+
+        self.build_and_send_request(request).await
+    }
+
     pub async fn register_user(&self, name: impl ToString) -> reqwest::Response {
         let request = self.http_client.request(
             Method::POST,

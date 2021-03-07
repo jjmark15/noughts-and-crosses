@@ -4,23 +4,23 @@ use std::sync::Arc;
 use warp::Filter;
 
 use crate::application::ApplicationServiceImpl;
-use crate::domain::room::RoomFactoryImpl;
+use crate::domain::room::{RoomFactoryImpl, RoomManagerImpl};
 use crate::domain::user::UserFactoryImpl;
-use crate::domain::RoomAssignmentServiceImpl;
 use crate::ports::http::warp::{
     app_status_filter, create_room_filter, get_user_name_filter, join_room_filter,
-    register_user_filter, WsUserClientProviderAdapter,
+    register_user_filter, start_new_game_filter, WsUserClientProviderAdapter,
 };
-use crate::ports::persistence::map::MapUserRepositoryAdapter;
-use crate::ports::persistence::vec::VecRoomRepositoryAdapter;
+use crate::ports::persistence::map::{
+    MapGameRepositoryAdapter, MapRoomRepositoryAdapter, MapUserRepositoryAdapter,
+};
 
 type ApplicationServiceAlias = ApplicationServiceImpl<
-    VecRoomRepositoryAdapter,
+    MapRoomRepositoryAdapter,
     RoomFactoryImpl,
     MapUserRepositoryAdapter,
     UserFactoryImpl,
     WsUserClientProviderAdapter,
-    RoomAssignmentServiceImpl<MapUserRepositoryAdapter>,
+    RoomManagerImpl<MapUserRepositoryAdapter, MapRoomRepositoryAdapter, MapGameRepositoryAdapter>,
 >;
 
 #[derive(Default)]
@@ -62,29 +62,38 @@ impl App {
             .and(warp::path::end());
         let rooms = warp::path("rooms").and(create_room.or(join_room));
 
+        let start_new_game =
+            start_new_game_filter(application_service.clone()).and(warp::path::end());
+        let games = warp::path("games").and(start_new_game);
+
         let users = warp::path("users").and(
             register_user_filter(application_service.clone())
                 .or(get_user_name_filter(application_service)),
         );
 
-        warp::any().and(users).or(rooms)
+        warp::any().and(users).or(rooms).or(games)
     }
 
     fn application_service(
         user_client_provider: Arc<WsUserClientProviderAdapter>,
     ) -> ApplicationServiceAlias {
-        let room_repository = VecRoomRepositoryAdapter::new();
+        let room_repository = Arc::new(MapRoomRepositoryAdapter::new());
         let room_factory = RoomFactoryImpl::new();
         let user_repository = Arc::new(MapUserRepositoryAdapter::new());
         let user_factory = UserFactoryImpl::new();
-        let room_assignment_service = RoomAssignmentServiceImpl::new(user_repository.clone());
+        let game_repository = MapGameRepositoryAdapter::new();
+        let room_manager = RoomManagerImpl::new(
+            user_repository.clone(),
+            room_repository.clone(),
+            game_repository,
+        );
         ApplicationServiceImpl::new(
             room_repository,
             room_factory,
             user_repository,
             user_factory,
             user_client_provider,
-            room_assignment_service,
+            room_manager,
         )
     }
 }

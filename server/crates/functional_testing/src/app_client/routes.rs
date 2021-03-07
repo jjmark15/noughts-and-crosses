@@ -6,6 +6,7 @@ pub(super) enum Route {
     Status,
     CreateRoom,
     JoinRoom(Uuid),
+    StartNewGame,
     RegisterUser(String),
     UserName(String),
 }
@@ -20,6 +21,7 @@ impl Route {
                 .with_segment("rooms")
                 .with_segment(room_id)
                 .with_segment("members"),
+            Route::StartNewGame => UrlPath::new().with_segment("game").with_segment("games"),
             Route::RegisterUser(user_name) => UrlPath::new()
                 .with_segment("game")
                 .with_segment("users")
