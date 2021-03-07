@@ -24,7 +24,8 @@ pub async fn create_user(app_client: &AppClient) -> Uuid {
         .json::<RegisteredUserResponse>()
         .await
         .unwrap()
-        .id()
+        .user_id()
+        .unwrap()
 }
 
 pub async fn create_room(app_client: &AppClient, user_id: Uuid) -> Uuid {

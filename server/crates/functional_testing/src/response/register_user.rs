@@ -2,15 +2,18 @@ use uuid::Uuid;
 
 #[derive(Debug, Eq, PartialEq, serde::Deserialize)]
 pub struct RegisteredUserResponse {
-    id: Uuid,
+    #[serde(rename = "id")]
+    user_id: String,
 }
 
 impl RegisteredUserResponse {
-    pub fn new(id: Uuid) -> Self {
-        RegisteredUserResponse { id }
+    pub fn new(user_id: Uuid) -> Self {
+        RegisteredUserResponse {
+            user_id: user_id.to_string(),
+        }
     }
 
-    pub fn id(&self) -> Uuid {
-        self.id
+    pub fn user_id(&self) -> Result<Uuid, uuid::Error> {
+        Uuid::parse_str(&self.user_id)
     }
 }

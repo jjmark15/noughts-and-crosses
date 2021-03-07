@@ -1,4 +1,3 @@
-use std::error::Error;
 use uuid::Uuid;
 
 #[derive(Debug, Eq, PartialEq, serde::Deserialize)]
@@ -13,7 +12,7 @@ impl CreateRoomResponse {
         }
     }
 
-    pub fn room_id(&self) -> Result<Uuid, impl Error> {
+    pub fn room_id(&self) -> Result<Uuid, uuid::Error> {
         Uuid::parse_str(&self.room_id.as_str())
     }
 }

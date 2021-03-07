@@ -17,8 +17,9 @@ async fn registers_user_with_name() {
     let id = register_response
         .json::<RegisteredUserResponse>()
         .await
-        .expect("Response should contain a valid Uuid Id")
-        .id();
+        .unwrap()
+        .user_id()
+        .unwrap();
     let name = app_client.user_name(id).await.text().await.unwrap();
 
     assert_that(&name).is_equal_to(&"Name".to_string());
@@ -35,8 +36,9 @@ async fn registers_user_with_name_including_spaces() {
     let id = register_response
         .json::<RegisteredUserResponse>()
         .await
-        .expect("Response should contain a valid Uuid Id")
-        .id();
+        .unwrap()
+        .user_id()
+        .unwrap();
     let name = app_client.user_name(id).await.text().await.unwrap();
 
     assert_that(&name).is_equal_to(&"First Last".to_string());
@@ -52,7 +54,8 @@ async fn returns_name_given_user_id() {
         .json::<RegisteredUserResponse>()
         .await
         .unwrap()
-        .id();
+        .user_id()
+        .unwrap();
 
     let response = app_client.user_name(id).await;
 
