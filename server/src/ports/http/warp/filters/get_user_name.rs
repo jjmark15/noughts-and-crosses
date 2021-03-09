@@ -26,32 +26,21 @@ where
 async fn get_user_name_handler<AS: ApplicationService>(
     application_service: Arc<AS>,
     user_id: Uuid,
-) -> Result<GetUserNameResponse, Infallible> {
+) -> Result<Response, Infallible> {
     let result = application_service.get_user_name(user_id).await;
     match result {
-        Ok(name) => Ok(GetUserNameResponse::Success(name)),
-        Err(err) => Ok(GetUserNameResponse::Error(err)),
+        Ok(name) => {
+            Ok(warp::reply::with_status(name.into_response(), StatusCode::FOUND).into_response())
+        }
+        Err(err) => Ok(get_user_name_error(err)),
     }
 }
 
-#[derive(Debug)]
-enum GetUserNameResponse {
-    Success(String),
-    Error(UserPersistenceError),
-}
-
-impl Reply for GetUserNameResponse {
-    fn into_response(self) -> Response {
-        match self {
-            GetUserNameResponse::Success(id) => {
-                warp::reply::with_status(id.into_response(), StatusCode::FOUND).into_response()
-            }
-            GetUserNameResponse::Error(err) => match err.cause() {
-                DomainUserPersistenceError::UserNotFound(_id) => json_reply_with_status(
-                    &SimpleErrorResponse::new(err.to_string()),
-                    StatusCode::NOT_FOUND,
-                ),
-            },
-        }
+fn get_user_name_error(err: UserPersistenceError) -> Response {
+    match err.cause() {
+        DomainUserPersistenceError::UserNotFound(_id) => json_reply_with_status(
+            &SimpleErrorResponse::new(err.to_string()),
+            StatusCode::NOT_FOUND,
+        ),
     }
 }
