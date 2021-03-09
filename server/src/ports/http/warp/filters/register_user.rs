@@ -1,13 +1,13 @@
 use std::convert::Infallible;
 use std::sync::Arc;
 
-use uuid::Uuid;
 use warp::http::StatusCode;
 use warp::reply::Response;
-use warp::{Filter, Reply};
+use warp::Filter;
 
 use crate::application::{ApplicationService, UserPersistenceError};
 use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
+use crate::ports::http::warp::responses::RegisterUserResponse;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service, PercentDecoded};
 
 pub(crate) fn register_user_filter<AS>(
@@ -25,42 +25,21 @@ where
 async fn register_user_handler<AS: ApplicationService>(
     application_service: Arc<AS>,
     decoded_user_name: PercentDecoded,
-) -> Result<RegisterUserResponse, Infallible> {
+) -> Result<Response, Infallible> {
     let result = application_service
         .register_user(decoded_user_name.to_string())
         .await;
     match result {
-        Ok(id) => Ok(RegisterUserResponse::Success(id)),
-        Err(err) => Ok(RegisterUserResponse::Error(err)),
+        Ok(id) => Ok(json_reply_with_status(
+            &RegisterUserResponse::new(id),
+            StatusCode::CREATED,
+        )),
+        Err(err) => Ok(register_user_error_response(err)),
     }
 }
 
-#[derive(Debug)]
-enum RegisterUserResponse {
-    Success(Uuid),
-    Error(UserPersistenceError),
-}
-
-#[derive(Debug, serde::Serialize)]
-struct RegisteredUserResponse {
-    id: Uuid,
-}
-
-impl RegisteredUserResponse {
-    fn new(id: Uuid) -> Self {
-        RegisteredUserResponse { id }
-    }
-}
-
-impl Reply for RegisterUserResponse {
-    fn into_response(self) -> Response {
-        match self {
-            RegisterUserResponse::Success(id) => {
-                json_reply_with_status(&RegisteredUserResponse::new(id), StatusCode::CREATED)
-            }
-            RegisterUserResponse::Error(err) => match err.cause() {
-                DomainUserPersistenceError::UserNotFound(_) => unimplemented!(),
-            },
-        }
+fn register_user_error_response(err: UserPersistenceError) -> Response {
+    match err.cause() {
+        DomainUserPersistenceError::UserNotFound(_) => unimplemented!(),
     }
 }
