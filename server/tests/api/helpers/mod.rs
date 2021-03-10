@@ -1,5 +1,7 @@
 use lazy_static::lazy_static;
+use spectral::prelude::*;
 use uuid::Uuid;
+use warp::http::StatusCode;
 
 use functional_testing::response::{CreateRoomResponse, RegisteredUserResponse};
 use functional_testing::AppClient;
@@ -44,4 +46,14 @@ pub async fn join_room(app_client: &mut AppClient, user_id: Uuid, room_id: Uuid)
         .join_room(user_id, room_id)
         .await
         .expect("Failed to join room");
+}
+
+pub async fn start_new_game(app_client: &AppClient, user_id: Uuid, room_id: Uuid) {
+    let response = app_client.start_new_game(user_id, room_id).await;
+    assert_that(&response.status()).is_equal_to(&StatusCode::CREATED);
+}
+
+pub async fn become_player(app_client: &mut AppClient, user_id: Uuid, room_id: Uuid) {
+    let response = app_client.become_player(user_id, room_id).await;
+    assert_that(&response.status()).is_equal_to(&StatusCode::ACCEPTED);
 }

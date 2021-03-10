@@ -38,7 +38,7 @@ async fn get_user_name_handler<AS: ApplicationService>(
 
 fn get_user_name_error(err: UserPersistenceError) -> Response {
     match err.cause() {
-        DomainUserPersistenceError::UserNotFound(_id) => json_reply_with_status(
+        DomainUserPersistenceError::NotFound(_id) => json_reply_with_status(
             &SimpleErrorResponse::new(err.to_string()),
             StatusCode::NOT_FOUND,
         ),

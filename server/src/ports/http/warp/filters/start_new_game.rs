@@ -7,7 +7,7 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, NewGameError};
-use crate::domain::room::RoomManagerError;
+use crate::domain::room::NewGameError as DomainNewGameError;
 use crate::ports::http::warp::responses::SimpleErrorResponse;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
@@ -42,10 +42,10 @@ where
 
 fn new_game_error_response(err: NewGameError) -> Response {
     let status_code: StatusCode = match err.cause() {
-        RoomManagerError::UserNotFound(_) | RoomManagerError::RoomNotFound(_) => {
+        DomainNewGameError::UserNotFound(_) | DomainNewGameError::RoomNotFound(_) => {
             StatusCode::NOT_FOUND
         }
-        RoomManagerError::UserNotInRoom(_, _) => StatusCode::NOT_ACCEPTABLE,
+        DomainNewGameError::UserNotInRoom(_) => StatusCode::NOT_ACCEPTABLE,
     };
     let error_body = SimpleErrorResponse::new(err.to_string());
     json_reply_with_status(&error_body, status_code).into_response()

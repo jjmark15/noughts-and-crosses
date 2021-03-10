@@ -1,5 +1,6 @@
 use crate::domain::room::{
-    RoomAssignmentError, RoomManagerError, RoomPersistenceError as DomainRoomPersistenceError,
+    GameAssignmentError, NewGameError as DomainNewGameError, RoomAssignmentError,
+    RoomPersistenceError as DomainRoomPersistenceError,
 };
 use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
 
@@ -39,11 +40,24 @@ pub(crate) enum LeaveRoomError {
 #[error(transparent)]
 pub(crate) struct NewGameError {
     #[from]
-    cause: RoomManagerError,
+    cause: DomainNewGameError,
 }
 
 impl NewGameError {
-    pub(crate) fn cause(&self) -> RoomManagerError {
-        self.cause
+    pub(crate) fn cause(&self) -> &DomainNewGameError {
+        &self.cause
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+pub(crate) struct BecomePlayerError {
+    #[from]
+    cause: GameAssignmentError,
+}
+
+impl BecomePlayerError {
+    pub(crate) fn cause(&self) -> &GameAssignmentError {
+        &self.cause
     }
 }

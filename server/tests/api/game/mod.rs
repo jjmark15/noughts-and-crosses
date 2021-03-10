@@ -1,3 +1,4 @@
+mod become_player_in_game;
 mod create_room;
 mod get_user_name;
 mod join_room;

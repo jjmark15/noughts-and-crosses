@@ -17,5 +17,5 @@ pub(crate) trait RoomRepository {
 #[derive(Debug, Copy, Clone, thiserror::Error)]
 pub(crate) enum RoomPersistenceError {
     #[error("Could not find room with id: {0}")]
-    RoomNotFound(Uuid),
+    NotFound(Uuid),
 }

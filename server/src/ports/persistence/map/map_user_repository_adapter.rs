@@ -35,7 +35,7 @@ impl UserRepository for MapUserRepositoryAdapter {
 
     async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
         let map = self.inner.lock();
-        let stored_user = map.get(&id).ok_or(UserPersistenceError::UserNotFound(id))?;
+        let stored_user = map.get(&id).ok_or(UserPersistenceError::NotFound(id))?;
         let user = User::new(id, stored_user.name.to_string());
         Ok(user)
     }

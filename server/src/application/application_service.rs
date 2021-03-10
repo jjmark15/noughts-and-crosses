@@ -3,7 +3,9 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::application::error::RoomCreationError;
-use crate::application::{JoinRoomError, LeaveRoomError, NewGameError, UserPersistenceError};
+use crate::application::{
+    BecomePlayerError, JoinRoomError, LeaveRoomError, NewGameError, UserPersistenceError,
+};
 use crate::domain::room::{RoomFactory, RoomManager, RoomRepository};
 use crate::domain::user::{UserFactory, UserRepository};
 
@@ -16,6 +18,12 @@ pub(crate) trait ApplicationService {
     async fn create_room(&self) -> Result<Uuid, RoomCreationError>;
 
     async fn start_new_game(&self, room_id: Uuid, user_id: Uuid) -> Result<(), NewGameError>;
+
+    async fn become_player(
+        &self,
+        room_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Option<()>, BecomePlayerError>;
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError>;
 
@@ -89,6 +97,17 @@ where
             .start_new_game(room_id, user_id)
             .await
             .map_err(NewGameError::from)
+    }
+
+    async fn become_player(
+        &self,
+        room_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Option<()>, BecomePlayerError> {
+        self.room_manager
+            .add_player(room_id, user_id)
+            .await
+            .map_err(BecomePlayerError::from)
     }
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError> {

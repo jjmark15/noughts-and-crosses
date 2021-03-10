@@ -40,6 +40,6 @@ async fn register_user_handler<AS: ApplicationService>(
 
 fn register_user_error_response(err: UserPersistenceError) -> Response {
     match err.cause() {
-        DomainUserPersistenceError::UserNotFound(_) => unimplemented!(),
+        DomainUserPersistenceError::NotFound(_) => unimplemented!(),
     }
 }

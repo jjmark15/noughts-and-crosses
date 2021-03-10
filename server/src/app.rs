@@ -7,8 +7,8 @@ use crate::application::ApplicationServiceImpl;
 use crate::domain::room::{RoomFactoryImpl, RoomManagerImpl};
 use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{
-    app_status_filter, create_room_filter, get_user_name_filter, join_room_filter,
-    register_user_filter, start_new_game_filter, WsUserClientProviderAdapter,
+    app_status_filter, become_player_filter, create_room_filter, get_user_name_filter,
+    join_room_filter, register_user_filter, start_new_game_filter, WsUserClientProviderAdapter,
 };
 use crate::ports::persistence::map::{
     MapGameRepositoryAdapter, MapRoomRepositoryAdapter, MapUserRepositoryAdapter,
@@ -67,10 +67,12 @@ impl App {
 
         let users = warp::path("users").and(
             register_user_filter(application_service.clone())
-                .or(get_user_name_filter(application_service)),
+                .or(get_user_name_filter(application_service.clone())),
         );
 
-        warp::any().and(users).or(rooms).or(games)
+        let players = warp::path("players").and(become_player_filter(application_service.clone()));
+
+        warp::any().and(users).or(rooms).or(games).or(players)
     }
 
     fn application_service() -> ApplicationServiceAlias {

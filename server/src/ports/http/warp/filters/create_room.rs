@@ -29,7 +29,7 @@ where
 {
     if let Err(err) = application_service.get_user_name(user_id).await {
         return match err.cause() {
-            UserPersistenceError::UserNotFound(_) => Ok(json_reply_with_status(
+            UserPersistenceError::NotFound(_) => Ok(json_reply_with_status(
                 &SimpleErrorResponse::new(err.to_string()),
                 StatusCode::NOT_FOUND,
             )),

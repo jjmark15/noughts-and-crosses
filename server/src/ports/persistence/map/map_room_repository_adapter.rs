@@ -34,7 +34,7 @@ impl RoomRepository for MapRoomRepositoryAdapter {
         let mut map = self.inner.lock();
         let _stored_room = map
             .get(&room_id)
-            .ok_or(RoomPersistenceError::RoomNotFound(room_id))?;
+            .ok_or(RoomPersistenceError::NotFound(room_id))?;
         map.insert(room_id, room.into());
         Ok(())
     }
@@ -43,7 +43,7 @@ impl RoomRepository for MapRoomRepositoryAdapter {
         let map = self.inner.lock();
         let stored_room = map
             .get(&room_id)
-            .ok_or(RoomPersistenceError::RoomNotFound(room_id))?;
+            .ok_or(RoomPersistenceError::NotFound(room_id))?;
         Ok(from_stored_room(room_id, stored_room))
     }
 
