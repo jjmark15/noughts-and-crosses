@@ -17,7 +17,7 @@ pub(crate) fn create_room_filter<AS>(
 where
     AS: ApplicationService + Send + Sync + 'static,
 {
-    warp::any()
+    warp::post()
         .and(warp::header("user-id"))
         .and(with_application_service(application_service))
         .and_then(handler)
