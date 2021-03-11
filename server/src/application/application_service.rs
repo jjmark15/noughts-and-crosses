@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::application::error::RoomCreationError;
 use crate::application::{JoinRoomError, LeaveRoomError, NewGameError, UserPersistenceError};
 use crate::domain::room::{RoomFactory, RoomManager, RoomRepository};
-use crate::domain::user::{UserClientProvider, UserFactory, UserRepository};
+use crate::domain::user::{UserFactory, UserRepository};
 
 #[async_trait::async_trait]
 pub(crate) trait ApplicationService {
@@ -28,32 +28,23 @@ pub(crate) struct ApplicationServiceImpl<
     RF: RoomFactory,
     UR: UserRepository,
     UF: UserFactory,
-    UCP: UserClientProvider,
     RM: RoomManager,
 > {
     room_repository: Arc<RR>,
     room_factory: RF,
     user_repository: Arc<UR>,
     user_factory: UF,
-    user_client_provider: Arc<UCP>,
     room_manager: RM,
 }
 
-impl<
-        RR: RoomRepository,
-        RF: RoomFactory,
-        UR: UserRepository,
-        UF: UserFactory,
-        UCP: UserClientProvider,
-        RM: RoomManager,
-    > ApplicationServiceImpl<RR, RF, UR, UF, UCP, RM>
+impl<RR: RoomRepository, RF: RoomFactory, UR: UserRepository, UF: UserFactory, RM: RoomManager>
+    ApplicationServiceImpl<RR, RF, UR, UF, RM>
 {
     pub(crate) fn new(
         room_repository: Arc<RR>,
         room_factory: RF,
         user_repository: Arc<UR>,
         user_factory: UF,
-        user_client_provider: Arc<UCP>,
         room_manager: RM,
     ) -> Self {
         ApplicationServiceImpl {
@@ -61,20 +52,18 @@ impl<
             room_factory,
             user_repository,
             user_factory,
-            user_client_provider,
             room_manager,
         }
     }
 }
 
 #[async_trait::async_trait]
-impl<RR, RF, UR, UF, UCP, RM> ApplicationService for ApplicationServiceImpl<RR, RF, UR, UF, UCP, RM>
+impl<RR, RF, UR, UF, RM> ApplicationService for ApplicationServiceImpl<RR, RF, UR, UF, RM>
 where
     RR: RoomRepository + Send + Sync,
     RF: RoomFactory + Send + Sync,
     UR: UserRepository + Send + Sync,
     UF: UserFactory + Send + Sync,
-    UCP: UserClientProvider + Send + Sync,
     RM: RoomManager + Send + Sync,
 {
     async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError> {

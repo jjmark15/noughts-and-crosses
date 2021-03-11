@@ -19,7 +19,6 @@ type ApplicationServiceAlias = ApplicationServiceImpl<
     RoomFactoryImpl,
     MapUserRepositoryAdapter,
     UserFactoryImpl,
-    WsUserClientProviderAdapter,
     RoomManagerImpl<MapUserRepositoryAdapter, MapRoomRepositoryAdapter, MapGameRepositoryAdapter>,
 >;
 
@@ -33,7 +32,7 @@ impl App {
 
     pub async fn run(&self) {
         let user_client_provider = Arc::new(WsUserClientProviderAdapter::new());
-        let application_service = Self::application_service(user_client_provider.clone());
+        let application_service = Self::application_service();
 
         let routes = warp::any()
             .and(warp::path("admin").and(Self::admin_routes()))
@@ -74,9 +73,7 @@ impl App {
         warp::any().and(users).or(rooms).or(games)
     }
 
-    fn application_service(
-        user_client_provider: Arc<WsUserClientProviderAdapter>,
-    ) -> ApplicationServiceAlias {
+    fn application_service() -> ApplicationServiceAlias {
         let room_repository = Arc::new(MapRoomRepositoryAdapter::new());
         let room_factory = RoomFactoryImpl::new();
         let user_repository = Arc::new(MapUserRepositoryAdapter::new());
@@ -92,7 +89,6 @@ impl App {
             room_factory,
             user_repository,
             user_factory,
-            user_client_provider,
             room_manager,
         )
     }
