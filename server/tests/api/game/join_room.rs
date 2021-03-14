@@ -1,4 +1,5 @@
 use spectral::prelude::*;
+use uuid::Uuid;
 use warp::http::StatusCode;
 
 use functional_testing::TungsteniteError;
@@ -36,4 +37,37 @@ async fn fails_to_join_different_room_if_already_in_a_room() {
 
     first_app_client.close_socket_connection().await;
     second_app_client.close_socket_connection().await;
+}
+
+#[tokio::test]
+async fn fails_to_join_room_if_user_does_not_exist() {
+    let mut app_client = app_client();
+    let user_id = create_user(&app_client).await;
+    let fake_user_id = Uuid::nil();
+    let room_id = create_room(&app_client, user_id).await;
+
+    let join_result = app_client.join_room(fake_user_id, room_id).await;
+    if let TungsteniteError::Http(response) = join_result.err().unwrap() {
+        assert_that(&response.status()).is_equal_to(&StatusCode::NOT_FOUND);
+    } else {
+        panic!("Unexpected error variant");
+    }
+
+    app_client.close_socket_connection().await;
+}
+
+#[tokio::test]
+async fn fails_to_join_room_if_room_does_not_exist() {
+    let mut app_client = app_client();
+    let user_id = create_user(&app_client).await;
+    let room_id = Uuid::nil();
+
+    let join_result = app_client.join_room(user_id, room_id).await;
+    if let TungsteniteError::Http(response) = join_result.err().unwrap() {
+        assert_that(&response.status()).is_equal_to(&StatusCode::NOT_FOUND);
+    } else {
+        panic!("Unexpected error variant");
+    }
+
+    app_client.close_socket_connection().await;
 }
