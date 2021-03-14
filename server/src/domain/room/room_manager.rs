@@ -40,10 +40,7 @@ where
     }
 
     fn user_is_in_room(user: &User, room: &Room) -> bool {
-        if let Some(id) = user.room_id() {
-            return id == room.id();
-        }
-        false
+        room.is_member(user.id())
     }
 }
 
@@ -56,23 +53,24 @@ where
 {
     async fn assign_user(&self, user_id: Uuid, room_id: Uuid) -> Result<(), RoomAssignmentError> {
         let user = self.user_repository.get(user_id).await?;
-        if let Some(_existing_room_id) = user.room_id() {
+        if !self.room_repository.have_member(&user).await?.is_empty() {
             return Err(RoomAssignmentError::AlreadyAssigned);
         }
-        let user_with_assignment = User::new(user_id, user.name().to_string(), Some(room_id));
-        self.user_repository.update(&user_with_assignment).await?;
+        let mut room = self.room_repository.get(room_id).await?;
+        room.add_member(user.id());
+        self.room_repository.update(&room).await?;
         Ok(())
     }
 
     async fn unassign_user(&self, user_id: Uuid) -> Result<(), RoomAssignmentError> {
         let user = self.user_repository.get(user_id).await?;
-        if user.room_id().is_none() {
-            return Ok(());
+        let mut rooms = self.room_repository.have_member(&user).await?;
+        rooms
+            .iter_mut()
+            .for_each(|room| room.remove_member(user_id));
+        for room in &rooms {
+            self.room_repository.update(room).await?;
         }
-        let user_without_assignment = User::new(user.id(), user.name().to_string(), None);
-        self.user_repository
-            .update(&user_without_assignment)
-            .await?;
         Ok(())
     }
 
@@ -126,4 +124,6 @@ pub(crate) enum RoomAssignmentError {
     AlreadyAssigned,
     #[error(transparent)]
     UserPersistence(#[from] UserPersistenceError),
+    #[error(transparent)]
+    RoomPersistence(#[from] RoomPersistenceError),
 }

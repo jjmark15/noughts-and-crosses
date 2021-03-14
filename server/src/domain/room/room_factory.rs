@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use uuid::Uuid;
 
 use crate::domain::room::Room;
@@ -16,6 +18,6 @@ impl RoomFactoryImpl {
 
 impl RoomFactory for RoomFactoryImpl {
     fn create(&self) -> Room {
-        Room::new(Uuid::new_v4(), None)
+        Room::new(Uuid::new_v4(), None, HashSet::new())
     }
 }

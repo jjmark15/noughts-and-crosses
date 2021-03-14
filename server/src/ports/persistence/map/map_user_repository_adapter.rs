@@ -36,24 +36,23 @@ impl UserRepository for MapUserRepositoryAdapter {
     async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
         let map = self.inner.lock();
         let stored_user = map.get(&id).ok_or(UserPersistenceError::UserNotFound(id))?;
-        let user = User::new(id, stored_user.name.to_string(), stored_user.room_id);
+        let user = User::new(id, stored_user.name.to_string());
         Ok(user)
     }
 }
 
 struct StoredUser {
     name: String,
-    room_id: Option<Uuid>,
 }
 
 impl StoredUser {
-    fn new(name: String, room_id: Option<Uuid>) -> Self {
-        StoredUser { name, room_id }
+    fn new(name: String) -> Self {
+        StoredUser { name }
     }
 }
 
 impl From<&User> for StoredUser {
     fn from(user: &User) -> Self {
-        StoredUser::new(user.name().to_string(), user.room_id())
+        StoredUser::new(user.name().to_string())
     }
 }
