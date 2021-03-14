@@ -85,6 +85,8 @@ pub(crate) enum GameAssignmentError {
     UserNotFound(UserPersistenceError),
     #[error(transparent)]
     RoomNotFound(RoomPersistenceError),
+    #[error(transparent)]
+    GameNotFound(GamePersistenceError),
     #[error("There is no currently active game for room with id: {0}")]
     NoActiveGameInRoom(Uuid),
     #[error(transparent)]
@@ -120,7 +122,7 @@ impl From<GameError> for GameAssignmentError {
 impl From<GamePersistenceError> for GameAssignmentError {
     fn from(err: GamePersistenceError) -> Self {
         match err {
-            GamePersistenceError::NotFound(_) => unimplemented!(),
+            GamePersistenceError::NotFound(_) => GameAssignmentError::GameNotFound(err),
         }
     }
 }

@@ -52,6 +52,7 @@ fn become_player_error_response(err: BecomePlayerError) -> Response {
         | GameAssignmentError::RoomNotFound(_) => StatusCode::NOT_FOUND,
         GameAssignmentError::PlayerCountExceeded(_) => StatusCode::NOT_ACCEPTABLE,
         GameAssignmentError::UserNotInRoom(_) => StatusCode::NOT_ACCEPTABLE,
+        GameAssignmentError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
     };
 
     let error_body = SimpleErrorResponse::new(err.to_string());
