@@ -3,9 +3,13 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use crate::domain::game::{Game, GameError, GamePersistenceError, GameRepository};
-use crate::domain::room::{Room, RoomPersistenceError, RoomRepository};
-use crate::domain::user::{User, UserPersistenceError, UserRepository};
+pub(crate) use error::*;
+
+use crate::domain::game::{Game, GamePersistenceError, GameRepository};
+use crate::domain::room::{Room, RoomRepository};
+use crate::domain::user::{User, UserRepository};
+
+mod error;
 
 #[async_trait::async_trait]
 pub(crate) trait RoomManager {
@@ -100,12 +104,12 @@ where
             .user_repository
             .get(user_id)
             .await
-            .map_err(NewGameError::UserNotFound)?;
+            .map_err(NewGameError::from)?;
         let mut room = self
             .room_repository
             .get(room_id)
             .await
-            .map_err(NewGameError::RoomNotFound)?;
+            .map_err(NewGameError::from)?;
 
         if !Self::user_is_in_room(&user, &room) {
             return Err(UserNotInRoomError::new(user_id, room_id).into());
@@ -117,7 +121,7 @@ where
         self.room_repository
             .update(&room)
             .await
-            .map_err(room_update_error)?;
+            .map_err(NewGameError::from)?;
 
         Ok(())
     }
@@ -131,12 +135,12 @@ where
             .user_repository
             .get(user_id)
             .await
-            .map_err(GameAssignmentError::UserNotFound)?;
+            .map_err(GameAssignmentError::from)?;
         let room = self
             .room_repository
             .get(room_id)
             .await
-            .map_err(GameAssignmentError::RoomNotFound)?;
+            .map_err(GameAssignmentError::from)?;
 
         if !Self::user_is_in_room(&user, &room) {
             return Err(UserNotInRoomError::new(user_id, room_id).into());
@@ -150,74 +154,14 @@ where
             .ok_or(GameAssignmentError::NoActiveGameInRoom(room_id))?;
 
         let mut game = self.game_repository.get(game_id).await?;
-        if let Some(()) = game.add_player(user_id).map_err(|err| match err {
-            GameError::PlayerCountExceeded => GameAssignmentError::PlayerCountExceeded(err),
-        })? {
+        if let Some(()) = game
+            .add_player(user_id)
+            .map_err(GameAssignmentError::from)?
+        {
             self.game_repository.update(&game).await?;
             Ok(Some(()))
         } else {
             Ok(None)
         }
     }
-}
-
-fn room_update_error(persistence_error: RoomPersistenceError) -> NewGameError {
-    match persistence_error {
-        RoomPersistenceError::NotFound(_) => NewGameError::RoomNotFound(persistence_error),
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum NewGameError {
-    #[error(transparent)]
-    UserNotFound(UserPersistenceError),
-    #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
-    #[error(transparent)]
-    UserNotInRoom(#[from] UserNotInRoomError),
-}
-
-#[derive(Debug, thiserror::Error)]
-#[error("User({user_id}) is not a member of Room({room_id})")]
-pub(crate) struct UserNotInRoomError {
-    user_id: Uuid,
-    room_id: Uuid,
-}
-
-impl UserNotInRoomError {
-    fn new(user_id: Uuid, room_id: Uuid) -> Self {
-        UserNotInRoomError { user_id, room_id }
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum RoomAssignmentError {
-    #[error("Users cannot be assigned to multiple rooms")]
-    AlreadyAssigned,
-    #[error(transparent)]
-    UserPersistence(#[from] UserPersistenceError),
-    #[error(transparent)]
-    RoomPersistence(#[from] RoomPersistenceError),
-    #[error(transparent)]
-    GamePersistence(#[from] GamePersistenceError),
-}
-
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum GameAssignmentError {
-    #[error(transparent)]
-    UserNotFound(UserPersistenceError),
-    #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
-    #[error(transparent)]
-    UserPersistence(#[from] UserPersistenceError),
-    #[error(transparent)]
-    RoomPersistence(#[from] RoomPersistenceError),
-    #[error(transparent)]
-    GamePersistence(#[from] GamePersistenceError),
-    #[error("There is no currently active game for room with id: {0}")]
-    NoActiveGameInRoom(Uuid),
-    #[error(transparent)]
-    PlayerCountExceeded(GameError),
-    #[error(transparent)]
-    UserNotInRoom(#[from] UserNotInRoomError),
 }

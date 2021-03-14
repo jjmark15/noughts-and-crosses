@@ -126,9 +126,9 @@ fn join_room_error_response(err: JoinRoomError) -> Response {
     let status_code = match &err {
         JoinRoomError::RoomAssignment(assignment_error) => match assignment_error {
             RoomAssignmentError::AlreadyAssigned => StatusCode::CONFLICT,
-            RoomAssignmentError::UserPersistence(_)
-            | RoomAssignmentError::RoomPersistence(_)
-            | RoomAssignmentError::GamePersistence(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            RoomAssignmentError::UserNotFound(_)
+            | RoomAssignmentError::RoomNotFound(_)
+            | RoomAssignmentError::GameNotFound(_) => unimplemented!(),
         },
     };
     warp::reply::with_status(warp::reply(), status_code).into_response()

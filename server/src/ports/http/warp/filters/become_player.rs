@@ -47,9 +47,6 @@ where
 
 fn become_player_error_response(err: BecomePlayerError) -> Response {
     let status_code = match err.cause() {
-        GameAssignmentError::RoomPersistence(_)
-        | GameAssignmentError::GamePersistence(_)
-        | GameAssignmentError::UserPersistence(_) => StatusCode::INTERNAL_SERVER_ERROR,
         GameAssignmentError::NoActiveGameInRoom(_)
         | GameAssignmentError::UserNotFound(_)
         | GameAssignmentError::RoomNotFound(_) => StatusCode::NOT_FOUND,
