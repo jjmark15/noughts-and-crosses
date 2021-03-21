@@ -4,7 +4,8 @@ use uuid::Uuid;
 
 use crate::application::error::RoomCreationError;
 use crate::application::{
-    BecomePlayerError, JoinRoomError, LeaveRoomError, NewGameError, UserPersistenceError,
+    ApplicationServiceGameMove, BecomePlayerError, GameMoveError, JoinRoomError, LeaveRoomError,
+    NewGameError, UserPersistenceError,
 };
 use crate::domain::room::{RoomFactory, RoomManager, RoomRepository};
 use crate::domain::user::{UserFactory, UserRepository};
@@ -24,6 +25,12 @@ pub(crate) trait ApplicationService {
         room_id: Uuid,
         user_id: Uuid,
     ) -> Result<Option<()>, BecomePlayerError>;
+
+    async fn make_game_move(
+        &self,
+        room_id: Uuid,
+        game_move: ApplicationServiceGameMove,
+    ) -> Result<(), GameMoveError>;
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError>;
 
@@ -108,6 +115,17 @@ where
             .add_player(room_id, user_id)
             .await
             .map_err(BecomePlayerError::from)
+    }
+
+    async fn make_game_move(
+        &self,
+        room_id: Uuid,
+        game_move: ApplicationServiceGameMove,
+    ) -> Result<(), GameMoveError> {
+        self.room_manager
+            .make_game_move(room_id, game_move.into())
+            .await?;
+        Ok(())
     }
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError> {

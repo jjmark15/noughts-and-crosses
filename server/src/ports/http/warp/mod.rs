@@ -6,6 +6,7 @@ pub(crate) use filters::*;
 pub(crate) use user_client::*;
 
 mod filters;
+mod requests;
 mod responses;
 mod user_client;
 

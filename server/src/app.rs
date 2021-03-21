@@ -4,11 +4,13 @@ use std::sync::Arc;
 use warp::Filter;
 
 use crate::application::ApplicationServiceImpl;
+use crate::domain::game::GamePlayServiceImpl;
 use crate::domain::room::{RoomFactoryImpl, RoomManagerImpl};
 use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{
     app_status_filter, become_player_filter, create_room_filter, get_user_name_filter,
-    join_room_filter, register_user_filter, start_new_game_filter, WsUserClientProviderAdapter,
+    join_room_filter, make_game_move, register_user_filter, start_new_game_filter,
+    WsUserClientProviderAdapter,
 };
 use crate::ports::persistence::map::{
     MapGameRepositoryAdapter, MapRoomRepositoryAdapter, MapUserRepositoryAdapter,
@@ -19,7 +21,12 @@ type ApplicationServiceAlias = ApplicationServiceImpl<
     RoomFactoryImpl,
     MapUserRepositoryAdapter,
     UserFactoryImpl,
-    RoomManagerImpl<MapUserRepositoryAdapter, MapRoomRepositoryAdapter, MapGameRepositoryAdapter>,
+    RoomManagerImpl<
+        MapUserRepositoryAdapter,
+        MapRoomRepositoryAdapter,
+        MapGameRepositoryAdapter,
+        GamePlayServiceImpl,
+    >,
 >;
 
 #[derive(Default)]
@@ -72,7 +79,14 @@ impl App {
 
         let players = warp::path("players").and(become_player_filter(application_service.clone()));
 
-        warp::any().and(users).or(rooms).or(games).or(players)
+        let game_moves = warp::path("moves").and(make_game_move(application_service));
+
+        warp::any()
+            .and(users)
+            .or(rooms)
+            .or(games)
+            .or(players)
+            .or(game_moves)
     }
 
     fn application_service() -> ApplicationServiceAlias {
@@ -81,10 +95,12 @@ impl App {
         let user_repository = Arc::new(MapUserRepositoryAdapter::new());
         let user_factory = UserFactoryImpl::new();
         let game_repository = MapGameRepositoryAdapter::new();
+        let game_play_service = GamePlayServiceImpl::new();
         let room_manager = RoomManagerImpl::new(
             user_repository.clone(),
             room_repository.clone(),
             game_repository,
+            game_play_service,
         );
         ApplicationServiceImpl::new(
             room_repository,

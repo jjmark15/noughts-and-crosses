@@ -1,6 +1,6 @@
-pub use app_client::AppClient;
-
 pub use tokio_tungstenite::tungstenite::Error as TungsteniteError;
+
+pub use app_client::*;
 
 mod app_client;
 

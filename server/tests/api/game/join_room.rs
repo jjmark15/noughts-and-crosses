@@ -1,10 +1,9 @@
 use spectral::prelude::*;
-use uuid::Uuid;
 use warp::http::StatusCode;
 
 use functional_testing::TungsteniteError;
 
-use crate::helpers::{app_client, create_room, create_user};
+use crate::helpers::{app_client, create_room, create_user, non_existent_id};
 
 #[tokio::test]
 async fn join_room() {
@@ -43,7 +42,7 @@ async fn fails_to_join_different_room_if_already_in_a_room() {
 async fn fails_to_join_room_if_user_does_not_exist() {
     let mut app_client = app_client();
     let user_id = create_user(&app_client).await;
-    let fake_user_id = Uuid::nil();
+    let fake_user_id = non_existent_id();
     let room_id = create_room(&app_client, user_id).await;
 
     let join_result = app_client.join_room(fake_user_id, room_id).await;
@@ -60,7 +59,7 @@ async fn fails_to_join_room_if_user_does_not_exist() {
 async fn fails_to_join_room_if_room_does_not_exist() {
     let mut app_client = app_client();
     let user_id = create_user(&app_client).await;
-    let room_id = Uuid::nil();
+    let room_id = non_existent_id();
 
     let join_result = app_client.join_room(user_id, room_id).await;
     if let TungsteniteError::Http(response) = join_result.err().unwrap() {

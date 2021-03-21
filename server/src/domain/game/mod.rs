@@ -2,18 +2,23 @@ use std::collections::HashSet;
 
 use uuid::Uuid;
 
+pub(crate) use game_move::*;
+pub(crate) use game_play_service::*;
 pub(crate) use game_repository::*;
 
+mod game_move;
+mod game_play_service;
 mod game_repository;
 
 pub(crate) struct Game {
     id: Uuid,
     players: HashSet<Uuid>,
+    moves: Vec<GameMove>,
 }
 
 impl Game {
-    pub(crate) fn new(id: Uuid, players: HashSet<Uuid>) -> Self {
-        Game { id, players }
+    pub(crate) fn new(id: Uuid, players: HashSet<Uuid>, moves: Vec<GameMove>) -> Self {
+        Game { id, players, moves }
     }
 
     pub(crate) fn id(&self) -> Uuid {
@@ -40,6 +45,14 @@ impl Game {
         } else {
             None
         }
+    }
+
+    pub(crate) fn moves(&self) -> &Vec<GameMove> {
+        &self.moves
+    }
+
+    pub(crate) fn append_move(&mut self, game_move: GameMove) {
+        self.moves.push(game_move)
     }
 }
 

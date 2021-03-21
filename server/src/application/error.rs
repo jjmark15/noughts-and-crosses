@@ -61,3 +61,16 @@ impl BecomePlayerError {
         &self.cause
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+pub(crate) struct GameMoveError {
+    #[from]
+    cause: crate::domain::room::GameMoveError,
+}
+
+impl GameMoveError {
+    pub(crate) fn cause(&self) -> &crate::domain::room::GameMoveError {
+        &self.cause
+    }
+}

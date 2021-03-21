@@ -1,10 +1,9 @@
 use spectral::prelude::*;
-use uuid::Uuid;
 
 use functional_testing::http::StatusCode;
 use functional_testing::response::SimpleErrorResponse;
 
-use crate::helpers::{app_client, create_room, create_user, join_room};
+use crate::helpers::{app_client, create_room, create_user, join_room, non_existent_id};
 
 #[tokio::test]
 async fn starts_new_game() {
@@ -41,7 +40,7 @@ async fn fails_if_user_is_not_in_room() {
 #[tokio::test]
 async fn fails_if_user_does_not_exist() {
     let mut app_client = app_client();
-    let user_id = Uuid::nil();
+    let user_id = non_existent_id();
     let room_id = create_room(&app_client, create_user(&app_client).await).await;
 
     let new_game_response = app_client.start_new_game(user_id, room_id).await;
@@ -59,7 +58,7 @@ async fn fails_if_user_does_not_exist() {
 async fn fails_if_room_does_not_exist() {
     let mut app_client = app_client();
     let user_id = create_user(&app_client).await;
-    let room_id = Uuid::nil();
+    let room_id = non_existent_id();
 
     let new_game_response = app_client.start_new_game(user_id, room_id).await;
 

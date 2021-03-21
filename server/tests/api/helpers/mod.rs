@@ -4,7 +4,9 @@ use uuid::Uuid;
 use warp::http::StatusCode;
 
 use functional_testing::response::{CreateRoomResponse, RegisteredUserResponse};
-use functional_testing::AppClient;
+use functional_testing::{AppClient, GameMove};
+
+pub(crate) mod game_moves;
 
 lazy_static! {
     static ref GAME_SERVER_HOST: String = {
@@ -17,6 +19,10 @@ lazy_static! {
 
 pub fn app_client() -> AppClient {
     AppClient::new(GAME_SERVER_HOST.clone())
+}
+
+pub fn non_existent_id() -> Uuid {
+    Uuid::nil()
 }
 
 pub async fn create_user(app_client: &AppClient) -> Uuid {
@@ -53,7 +59,17 @@ pub async fn start_new_game(app_client: &AppClient, user_id: Uuid, room_id: Uuid
     assert_that(&response.status()).is_equal_to(&StatusCode::CREATED);
 }
 
-pub async fn become_player(app_client: &mut AppClient, user_id: Uuid, room_id: Uuid) {
+pub async fn become_player(app_client: &AppClient, user_id: Uuid, room_id: Uuid) {
     let response = app_client.become_player(user_id, room_id).await;
+    assert_that(&response.status()).is_equal_to(&StatusCode::ACCEPTED);
+}
+
+pub async fn make_game_move(
+    app_client: &AppClient,
+    user_id: Uuid,
+    room_id: Uuid,
+    game_move: GameMove,
+) {
+    let response = app_client.make_game_move(user_id, room_id, game_move).await;
     assert_that(&response.status()).is_equal_to(&StatusCode::ACCEPTED);
 }

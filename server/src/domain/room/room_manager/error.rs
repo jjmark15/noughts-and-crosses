@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::domain::game::{GameError, GamePersistenceError};
+use crate::domain::game::{GameError, GamePersistenceError, GamePlayServiceError};
 use crate::domain::room::RoomPersistenceError;
 use crate::domain::user::UserPersistenceError;
 
@@ -123,6 +123,56 @@ impl From<GamePersistenceError> for GameAssignmentError {
     fn from(err: GamePersistenceError) -> Self {
         match err {
             GamePersistenceError::NotFound(_) => GameAssignmentError::GameNotFound(err),
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum GameMoveError {
+    #[error(transparent)]
+    UserNotFound(UserPersistenceError),
+    #[error(transparent)]
+    RoomNotFound(RoomPersistenceError),
+    #[error(transparent)]
+    GameNotFound(GamePersistenceError),
+    #[error("There is no currently active game for room with id: {0}")]
+    NoActiveGameInRoom(Uuid),
+    #[error(transparent)]
+    PlayerCountExceeded(GameError),
+    #[error(transparent)]
+    UserNotInRoom(#[from] UserNotInRoomError),
+    #[error(transparent)]
+    GamePlayError(#[from] GamePlayServiceError),
+}
+
+impl From<UserPersistenceError> for GameMoveError {
+    fn from(err: UserPersistenceError) -> Self {
+        match err {
+            UserPersistenceError::NotFound(_) => GameMoveError::UserNotFound(err),
+        }
+    }
+}
+
+impl From<RoomPersistenceError> for GameMoveError {
+    fn from(err: RoomPersistenceError) -> Self {
+        match err {
+            RoomPersistenceError::NotFound(_) => GameMoveError::RoomNotFound(err),
+        }
+    }
+}
+
+impl From<GameError> for GameMoveError {
+    fn from(err: GameError) -> Self {
+        match err {
+            GameError::PlayerCountExceeded => GameMoveError::PlayerCountExceeded(err),
+        }
+    }
+}
+
+impl From<GamePersistenceError> for GameMoveError {
+    fn from(err: GamePersistenceError) -> Self {
+        match err {
+            GamePersistenceError::NotFound(_) => GameMoveError::GameNotFound(err),
         }
     }
 }

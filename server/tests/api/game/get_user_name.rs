@@ -1,10 +1,9 @@
 use spectral::prelude::*;
-use uuid::Uuid;
 
 use functional_testing::http::StatusCode;
 use functional_testing::response::{RegisteredUserResponse, SimpleErrorResponse};
 
-use crate::helpers::app_client;
+use crate::helpers::{app_client, non_existent_id};
 
 #[tokio::test]
 async fn returns_name_given_user_id() {
@@ -28,7 +27,7 @@ async fn returns_name_given_user_id() {
 #[tokio::test]
 async fn get_user_name_fails_if_user_with_id_does_not_exist() {
     let app_client = app_client();
-    let id = Uuid::nil();
+    let id = non_existent_id();
 
     let response = app_client.user_name(id).await;
 

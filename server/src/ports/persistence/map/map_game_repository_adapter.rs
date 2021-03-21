@@ -4,7 +4,7 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::game::{Game, GamePersistenceError, GameRepository};
+use crate::domain::game::{Game, GameMove, GameMovePosition, GamePersistenceError, GameRepository};
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredGame>>>;
 
@@ -49,16 +49,65 @@ impl GameRepository for MapGameRepositoryAdapter {
 
 struct StoredGame {
     players: HashSet<Uuid>,
+    moves: Vec<StoredGameMove>,
+}
+
+#[derive(Debug, Copy, Clone)]
+struct StoredGameMove {
+    user_id: Uuid,
+    position: StoredGameMovePosition,
+}
+
+impl From<&GameMove> for StoredGameMove {
+    fn from(game_move: &GameMove) -> Self {
+        StoredGameMove {
+            user_id: game_move.user_id(),
+            position: game_move.position().into(),
+        }
+    }
+}
+
+impl From<&StoredGameMove> for GameMove {
+    fn from(game_move: &StoredGameMove) -> Self {
+        GameMove::new(game_move.user_id, game_move.position.into())
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+struct StoredGameMovePosition {
+    x: u8,
+    y: u8,
+}
+
+impl From<GameMovePosition> for StoredGameMovePosition {
+    fn from(position: GameMovePosition) -> Self {
+        StoredGameMovePosition {
+            x: position.x(),
+            y: position.y(),
+        }
+    }
+}
+
+impl From<StoredGameMovePosition> for GameMovePosition {
+    fn from(position: StoredGameMovePosition) -> Self {
+        GameMovePosition::new(position.x, position.y)
+    }
 }
 
 impl From<&Game> for StoredGame {
     fn from(game: &Game) -> Self {
+        let moves = game.moves().iter().map(StoredGameMove::from).collect();
         StoredGame {
             players: game.players().clone(),
+            moves,
         }
     }
 }
 
 fn from_stored_game(id: Uuid, stored_game: &StoredGame) -> Game {
-    Game::new(id, stored_game.players.clone())
+    Game::new(
+        id,
+        stored_game.players.clone(),
+        stored_game.moves.iter().map(GameMove::from).collect(),
+    )
 }

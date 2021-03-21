@@ -10,6 +10,7 @@ pub(super) enum Route {
     BecomePlayer,
     RegisterUser(String),
     UserName(String),
+    MakeGameMove,
 }
 
 impl Route {
@@ -32,6 +33,7 @@ impl Route {
                 .with_segment("users")
                 .with_segment(user_id),
             Route::BecomePlayer => UrlPath::new().with_segment("game").with_segment("players"),
+            Route::MakeGameMove => UrlPath::new().with_segment("game").with_segment("moves"),
         }
     }
 }

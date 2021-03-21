@@ -6,8 +6,11 @@ use tokio_tungstenite::{connect_async, WebSocketStream};
 use url::{ParseError, Url};
 use uuid::Uuid;
 
+pub use game_move::*;
+
 use crate::app_client::routes::Route;
 
+mod game_move;
 mod routes;
 
 pub struct AppClient {
@@ -109,6 +112,25 @@ impl AppClient {
                 Method::PUT,
                 self.http_request_base_url(Route::BecomePlayer).unwrap(),
             )
+            .header("user-id", user_id.to_string())
+            .header("room-id", room_id.to_string());
+
+        self.build_and_send_request(request).await
+    }
+
+    pub async fn make_game_move(
+        &self,
+        user_id: Uuid,
+        room_id: Uuid,
+        game_move: GameMove,
+    ) -> reqwest::Response {
+        let request = self
+            .http_client
+            .request(
+                Method::POST,
+                self.http_request_base_url(Route::MakeGameMove).unwrap(),
+            )
+            .json(&game_move)
             .header("user-id", user_id.to_string())
             .header("room-id", room_id.to_string());
 

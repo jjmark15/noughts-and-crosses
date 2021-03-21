@@ -1,10 +1,9 @@
 use spectral::prelude::*;
-use uuid::Uuid;
 
 use functional_testing::http::StatusCode;
 use functional_testing::response::{CreateRoomResponse, SimpleErrorResponse};
 
-use crate::helpers::{app_client, create_user};
+use crate::helpers::{app_client, create_user, non_existent_id};
 
 #[tokio::test]
 async fn creates_room() {
@@ -20,7 +19,7 @@ async fn creates_room() {
 #[tokio::test]
 async fn create_room_fails_given_fake_user_id() {
     let app_client = app_client();
-    let user_id = Uuid::nil();
+    let user_id = non_existent_id();
 
     let create_room_response = app_client.create_room(user_id).await;
 
