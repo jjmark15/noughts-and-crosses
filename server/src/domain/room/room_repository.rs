@@ -10,7 +10,7 @@ pub(crate) trait RoomRepository {
     async fn update(&self, room: &Room) -> Result<(), RoomPersistenceError>;
 
     async fn get(&self, room_id: Uuid) -> Result<Room, RoomPersistenceError>;
-    
+
     async fn have_member(&self, user: &User) -> Result<Vec<Room>, RoomPersistenceError>;
 }
 

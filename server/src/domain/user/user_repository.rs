@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::domain::user::User;
+use crate::domain::user::{User, UserNotFoundError};
 
 #[async_trait::async_trait]
 pub(crate) trait UserRepository {
@@ -13,6 +13,6 @@ pub(crate) trait UserRepository {
 
 #[derive(Debug, Copy, Clone, thiserror::Error)]
 pub(crate) enum UserPersistenceError {
-    #[error("Could not find user with id: {0}")]
-    NotFound(Uuid),
+    #[error(transparent)]
+    NotFound(UserNotFoundError),
 }

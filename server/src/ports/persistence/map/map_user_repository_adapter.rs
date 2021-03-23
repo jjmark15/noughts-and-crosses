@@ -4,7 +4,7 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::user::{User, UserPersistenceError, UserRepository};
+use crate::domain::user::{User, UserNotFoundError, UserPersistenceError, UserRepository};
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredUser>>>;
 
@@ -35,7 +35,9 @@ impl UserRepository for MapUserRepositoryAdapter {
 
     async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
         let map = self.inner.lock();
-        let stored_user = map.get(&id).ok_or(UserPersistenceError::NotFound(id))?;
+        let stored_user = map
+            .get(&id)
+            .ok_or_else(|| UserPersistenceError::NotFound(UserNotFoundError::new(id)))?;
         let user = User::new(id, stored_user.name.to_string());
         Ok(user)
     }

@@ -1,9 +1,11 @@
 use uuid::Uuid;
 
+pub(crate) use error::*;
 pub(crate) use user_client::*;
 pub(crate) use user_factory::*;
 pub(crate) use user_repository::*;
 
+mod error;
 mod user_client;
 mod user_factory;
 mod user_repository;
