@@ -4,7 +4,9 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::game::{Game, GameMove, GameMovePosition, GamePersistenceError, GameRepository};
+use crate::domain::game::{
+    Game, GameMove, GameMovePosition, GameNotFoundError, GamePersistenceError, GameRepository,
+};
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredGame>>>;
 
@@ -26,7 +28,7 @@ impl GameRepository for MapGameRepositoryAdapter {
         let map = self.inner.lock();
         let stored_game = map
             .get(&game_id)
-            .ok_or(GamePersistenceError::NotFound(game_id))?;
+            .ok_or_else::<GamePersistenceError, _>(|| GameNotFoundError(game_id).into())?;
         Ok(from_stored_game(game_id, stored_game))
     }
 
@@ -41,7 +43,7 @@ impl GameRepository for MapGameRepositoryAdapter {
         let mut map = self.inner.lock();
         let _stored_game = map
             .get(&game_id)
-            .ok_or(GamePersistenceError::NotFound(game_id))?;
+            .ok_or_else::<GamePersistenceError, _>(|| GameNotFoundError(game_id).into())?;
         map.insert(game_id, game.into());
         Ok(())
     }

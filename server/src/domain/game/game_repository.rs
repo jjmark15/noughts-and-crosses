@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::domain::game::Game;
+use crate::domain::game::{Game, GameNotFoundError};
 
 #[async_trait::async_trait]
 pub(crate) trait GameRepository {
@@ -13,6 +13,6 @@ pub(crate) trait GameRepository {
 
 #[derive(Debug, Copy, Clone, thiserror::Error)]
 pub(crate) enum GamePersistenceError {
-    #[error("Could not find game with id: {0}")]
-    NotFound(Uuid),
+    #[error(transparent)]
+    NotFound(#[from] GameNotFoundError),
 }

@@ -1,6 +1,8 @@
 use uuid::Uuid;
 
-use crate::domain::game::{GameError, GamePersistenceError, GamePlayServiceError};
+use crate::domain::game::{
+    GameError, GameNotFoundError, GamePersistenceError, GamePlayServiceError,
+};
 use crate::domain::room::{RoomNotFoundError, RoomPersistenceError};
 use crate::domain::user::{UserNotFoundError, UserPersistenceError};
 
@@ -52,7 +54,7 @@ pub(crate) enum RoomAssignmentError {
     #[error(transparent)]
     RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
-    GameNotFound(GamePersistenceError),
+    GameNotFound(#[from] GameNotFoundError),
 }
 
 impl From<UserPersistenceError> for RoomAssignmentError {
@@ -74,7 +76,7 @@ impl From<RoomPersistenceError> for RoomAssignmentError {
 impl From<GamePersistenceError> for RoomAssignmentError {
     fn from(err: GamePersistenceError) -> Self {
         match err {
-            GamePersistenceError::NotFound(_) => RoomAssignmentError::GameNotFound(err),
+            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
         }
     }
 }
@@ -86,7 +88,7 @@ pub(crate) enum GameAssignmentError {
     #[error(transparent)]
     RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
-    GameNotFound(GamePersistenceError),
+    GameNotFound(#[from] GameNotFoundError),
     #[error("There is no currently active game for room with id: {0}")]
     NoActiveGameInRoom(Uuid),
     #[error(transparent)]
@@ -122,7 +124,7 @@ impl From<GameError> for GameAssignmentError {
 impl From<GamePersistenceError> for GameAssignmentError {
     fn from(err: GamePersistenceError) -> Self {
         match err {
-            GamePersistenceError::NotFound(_) => GameAssignmentError::GameNotFound(err),
+            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
         }
     }
 }
@@ -134,7 +136,7 @@ pub(crate) enum GameMoveError {
     #[error(transparent)]
     RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
-    GameNotFound(GamePersistenceError),
+    GameNotFound(#[from] GameNotFoundError),
     #[error("There is no currently active game for room with id: {0}")]
     NoActiveGameInRoom(Uuid),
     #[error(transparent)]
@@ -172,7 +174,7 @@ impl From<GameError> for GameMoveError {
 impl From<GamePersistenceError> for GameMoveError {
     fn from(err: GamePersistenceError) -> Self {
         match err {
-            GamePersistenceError::NotFound(_) => GameMoveError::GameNotFound(err),
+            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
         }
     }
 }
