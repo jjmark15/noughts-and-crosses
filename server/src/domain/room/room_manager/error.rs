@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::domain::game::{
-    GameError, GameNotFoundError, GamePersistenceError, GamePlayServiceError,
+    GameNotFoundError, GamePersistenceError, GamePlayServiceError, PlayerCountExceededError,
 };
 use crate::domain::room::{RoomNotFoundError, RoomPersistenceError};
 use crate::domain::user::{UserNotFoundError, UserPersistenceError};
@@ -92,7 +92,7 @@ pub(crate) enum GameAssignmentError {
     #[error(transparent)]
     NoActiveGameInRoom(#[from] NoActiveGameInRoomError),
     #[error(transparent)]
-    PlayerCountExceeded(GameError),
+    PlayerCountExceeded(#[from] PlayerCountExceededError),
     #[error(transparent)]
     UserNotInRoom(#[from] UserNotInRoomError),
 }
@@ -109,14 +109,6 @@ impl From<RoomPersistenceError> for GameAssignmentError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
             RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
-        }
-    }
-}
-
-impl From<GameError> for GameAssignmentError {
-    fn from(err: GameError) -> Self {
-        match err {
-            GameError::PlayerCountExceeded => GameAssignmentError::PlayerCountExceeded(err),
         }
     }
 }
@@ -140,7 +132,7 @@ pub(crate) enum GameMoveError {
     #[error(transparent)]
     NoActiveGameInRoom(#[from] NoActiveGameInRoomError),
     #[error(transparent)]
-    PlayerCountExceeded(GameError),
+    PlayerCountExceeded(#[from] PlayerCountExceededError),
     #[error(transparent)]
     UserNotInRoom(#[from] UserNotInRoomError),
     #[error(transparent)]
@@ -159,14 +151,6 @@ impl From<RoomPersistenceError> for GameMoveError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
             RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
-        }
-    }
-}
-
-impl From<GameError> for GameMoveError {
-    fn from(err: GameError) -> Self {
-        match err {
-            GameError::PlayerCountExceeded => GameMoveError::PlayerCountExceeded(err),
         }
     }
 }

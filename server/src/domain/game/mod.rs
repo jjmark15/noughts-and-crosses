@@ -31,9 +31,12 @@ impl Game {
         &self.players
     }
 
-    pub(crate) fn add_player(&mut self, user_id: Uuid) -> Result<Option<()>, GameError> {
+    pub(crate) fn add_player(
+        &mut self,
+        user_id: Uuid,
+    ) -> Result<Option<()>, PlayerCountExceededError> {
         if self.players.len() == 2 {
-            Err(GameError::PlayerCountExceeded)
+            Err(PlayerCountExceededError::default())
         } else if self.players.insert(user_id) {
             Ok(Some(()))
         } else {
@@ -56,10 +59,4 @@ impl Game {
     pub(crate) fn append_move(&mut self, game_move: GameMove) {
         self.moves.push(game_move)
     }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum GameError {
-    #[error("Exceeded player count limit")]
-    PlayerCountExceeded,
 }
