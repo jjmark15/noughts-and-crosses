@@ -125,6 +125,7 @@ async fn move_fails_if_position_is_already_occupied() {
     let error_response: SimpleErrorResponse = game_move_response.json().await.unwrap();
     assert_that(&error_response.cause()).is_equal_to(&"Position is already occupied".to_string());
     app_client.close_socket_connection().await;
+    other_app_client.close_socket_connection().await;
 }
 
 #[tokio::test]
@@ -168,6 +169,7 @@ async fn move_fails_if_user_is_not_in_room() {
         user_id, room_id
     ));
     app_client.close_socket_connection().await;
+    other_app_client.close_socket_connection().await;
 }
 
 #[tokio::test]
@@ -191,6 +193,7 @@ async fn move_fails_if_user_does_not_exist() {
     assert_that(&error_response.cause())
         .is_equal_to(&format!("Could not find user with id: {}", user_id));
     app_client.close_socket_connection().await;
+    other_app_client.close_socket_connection().await;
 }
 
 #[tokio::test]
