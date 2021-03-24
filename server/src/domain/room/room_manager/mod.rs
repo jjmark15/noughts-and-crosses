@@ -162,7 +162,7 @@ where
                 self.game_repository.update(&game).await?;
                 Ok(())
             }
-            None => Err(GameMoveError::NoActiveGameInRoom(room_id)),
+            None => Err(NoActiveGameInRoomError(room_id).into()),
         }
     }
 
@@ -191,7 +191,7 @@ where
             .get(room_id)
             .await?
             .active_game_id
-            .ok_or(GameAssignmentError::NoActiveGameInRoom(room_id))?;
+            .ok_or(NoActiveGameInRoomError(room_id))?;
 
         let mut game = self.game_repository.get(game_id).await?;
         if let Some(()) = game

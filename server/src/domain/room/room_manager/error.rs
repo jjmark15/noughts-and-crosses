@@ -89,8 +89,8 @@ pub(crate) enum GameAssignmentError {
     RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     GameNotFound(#[from] GameNotFoundError),
-    #[error("There is no currently active game for room with id: {0}")]
-    NoActiveGameInRoom(Uuid),
+    #[error(transparent)]
+    NoActiveGameInRoom(#[from] NoActiveGameInRoomError),
     #[error(transparent)]
     PlayerCountExceeded(GameError),
     #[error(transparent)]
@@ -137,8 +137,8 @@ pub(crate) enum GameMoveError {
     RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     GameNotFound(#[from] GameNotFoundError),
-    #[error("There is no currently active game for room with id: {0}")]
-    NoActiveGameInRoom(Uuid),
+    #[error(transparent)]
+    NoActiveGameInRoom(#[from] NoActiveGameInRoomError),
     #[error(transparent)]
     PlayerCountExceeded(GameError),
     #[error(transparent)]
@@ -178,3 +178,7 @@ impl From<GamePersistenceError> for GameMoveError {
         }
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+#[error("There is no currently active game for room with id: {0}")]
+pub(crate) struct NoActiveGameInRoomError(pub(crate) Uuid);
