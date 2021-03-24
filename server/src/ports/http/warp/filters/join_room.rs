@@ -75,7 +75,7 @@ async fn user_connected<AS>(
     let rx = ReceiverStream::new(rx);
     tokio::task::spawn(rx.forward(user_ws_tx).map(move |result| {
         if let Err(err) = result {
-            log::error!(
+            log::warn!(
                 "Error while sending WebSocket message to user({}): {}",
                 user_id,
                 err
@@ -96,7 +96,7 @@ async fn user_connected<AS>(
                 }
             }
             Err(err) => {
-                log::error!(
+                log::warn!(
                     "WebSocket error while reading message from user({}): {}",
                     user_id,
                     err
@@ -117,7 +117,7 @@ async fn user_disconnected<AS>(
     AS: ApplicationService + Send + Sync,
 {
     if let Err(err) = application_service.leave_room(user_id).await {
-        log::error!("Error while disconnecting user({}): {}", user_id, err);
+        log::warn!("Error while disconnecting user({}): {}", user_id, err);
     }
     user_client_provider.remove(user_id).await;
 }
@@ -144,9 +144,9 @@ where
     AS: ApplicationService + Send + Sync + 'static,
 {
     if let Err(join_err) = application_service.join_room(room_id, user_id).await {
-        log::error!("User({}) failed to join room: {}", user_id, join_err);
+        log::debug!("User({}) failed to join room: {}", user_id, join_err);
         if let Err(leave_err) = application_service.leave_room(user_id).await {
-            log::error!("User({}) failed to leave room: {}", user_id, leave_err);
+            log::warn!("User({}) failed to leave room: {}", user_id, leave_err);
         }
 
         return Err(join_err);
