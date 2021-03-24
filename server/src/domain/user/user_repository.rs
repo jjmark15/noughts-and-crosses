@@ -14,5 +14,5 @@ pub(crate) trait UserRepository {
 #[derive(Debug, Copy, Clone, thiserror::Error)]
 pub(crate) enum UserPersistenceError {
     #[error(transparent)]
-    NotFound(UserNotFoundError),
+    NotFound(#[from] UserNotFoundError),
 }

@@ -2,10 +2,12 @@ use std::collections::HashSet;
 
 use uuid::Uuid;
 
+pub(crate) use error::*;
 pub(crate) use room_factory::*;
 pub(crate) use room_manager::*;
 pub(crate) use room_repository::*;
 
+mod error;
 mod room_factory;
 mod room_manager;
 mod room_repository;

@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::domain::game::{GameError, GamePersistenceError, GamePlayServiceError};
-use crate::domain::room::RoomPersistenceError;
+use crate::domain::room::{RoomNotFoundError, RoomPersistenceError};
 use crate::domain::user::{UserNotFoundError, UserPersistenceError};
 
 #[derive(Debug, thiserror::Error)]
@@ -20,9 +20,9 @@ impl UserNotInRoomError {
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum NewGameError {
     #[error(transparent)]
-    UserNotFound(UserNotFoundError),
+    UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
+    RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     UserNotInRoom(#[from] UserNotInRoomError),
 }
@@ -30,9 +30,7 @@ pub(crate) enum NewGameError {
 impl From<UserPersistenceError> for NewGameError {
     fn from(err: UserPersistenceError) -> Self {
         match err {
-            UserPersistenceError::NotFound(user_not_found_error) => {
-                NewGameError::UserNotFound(user_not_found_error)
-            }
+            UserPersistenceError::NotFound(user_not_found_error) => user_not_found_error.into(),
         }
     }
 }
@@ -40,7 +38,7 @@ impl From<UserPersistenceError> for NewGameError {
 impl From<RoomPersistenceError> for NewGameError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(_) => NewGameError::RoomNotFound(err),
+            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }
@@ -50,9 +48,9 @@ pub(crate) enum RoomAssignmentError {
     #[error("Users cannot be assigned to multiple rooms")]
     AlreadyAssigned,
     #[error(transparent)]
-    UserNotFound(UserNotFoundError),
+    UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
+    RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     GameNotFound(GamePersistenceError),
 }
@@ -60,9 +58,7 @@ pub(crate) enum RoomAssignmentError {
 impl From<UserPersistenceError> for RoomAssignmentError {
     fn from(err: UserPersistenceError) -> Self {
         match err {
-            UserPersistenceError::NotFound(user_not_found_error) => {
-                RoomAssignmentError::UserNotFound(user_not_found_error)
-            }
+            UserPersistenceError::NotFound(user_not_found_error) => user_not_found_error.into(),
         }
     }
 }
@@ -70,7 +66,7 @@ impl From<UserPersistenceError> for RoomAssignmentError {
 impl From<RoomPersistenceError> for RoomAssignmentError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(_) => RoomAssignmentError::RoomNotFound(err),
+            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }
@@ -86,9 +82,9 @@ impl From<GamePersistenceError> for RoomAssignmentError {
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum GameAssignmentError {
     #[error(transparent)]
-    UserNotFound(UserNotFoundError),
+    UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
+    RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     GameNotFound(GamePersistenceError),
     #[error("There is no currently active game for room with id: {0}")]
@@ -102,9 +98,7 @@ pub(crate) enum GameAssignmentError {
 impl From<UserPersistenceError> for GameAssignmentError {
     fn from(err: UserPersistenceError) -> Self {
         match err {
-            UserPersistenceError::NotFound(user_not_found_error) => {
-                GameAssignmentError::UserNotFound(user_not_found_error)
-            }
+            UserPersistenceError::NotFound(user_not_found_error) => user_not_found_error.into(),
         }
     }
 }
@@ -112,7 +106,7 @@ impl From<UserPersistenceError> for GameAssignmentError {
 impl From<RoomPersistenceError> for GameAssignmentError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(_) => GameAssignmentError::RoomNotFound(err),
+            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }
@@ -136,9 +130,9 @@ impl From<GamePersistenceError> for GameAssignmentError {
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum GameMoveError {
     #[error(transparent)]
-    UserNotFound(UserNotFoundError),
+    UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
-    RoomNotFound(RoomPersistenceError),
+    RoomNotFound(#[from] RoomNotFoundError),
     #[error(transparent)]
     GameNotFound(GamePersistenceError),
     #[error("There is no currently active game for room with id: {0}")]
@@ -154,9 +148,7 @@ pub(crate) enum GameMoveError {
 impl From<UserPersistenceError> for GameMoveError {
     fn from(err: UserPersistenceError) -> Self {
         match err {
-            UserPersistenceError::NotFound(user_not_found_error) => {
-                GameMoveError::UserNotFound(user_not_found_error)
-            }
+            UserPersistenceError::NotFound(user_not_found_error) => user_not_found_error.into(),
         }
     }
 }
@@ -164,7 +156,7 @@ impl From<UserPersistenceError> for GameMoveError {
 impl From<RoomPersistenceError> for GameMoveError {
     fn from(err: RoomPersistenceError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(_) => GameMoveError::RoomNotFound(err),
+            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }

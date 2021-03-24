@@ -4,7 +4,7 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::room::{Room, RoomPersistenceError, RoomRepository};
+use crate::domain::room::{Room, RoomNotFoundError, RoomPersistenceError, RoomRepository};
 use crate::domain::user::User;
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredRoom>>>;
@@ -34,7 +34,7 @@ impl RoomRepository for MapRoomRepositoryAdapter {
         let mut map = self.inner.lock();
         let _stored_room = map
             .get(&room_id)
-            .ok_or(RoomPersistenceError::NotFound(room_id))?;
+            .ok_or(RoomPersistenceError::NotFound(RoomNotFoundError(room_id)))?;
         map.insert(room_id, room.into());
         Ok(())
     }
@@ -43,7 +43,7 @@ impl RoomRepository for MapRoomRepositoryAdapter {
         let map = self.inner.lock();
         let stored_room = map
             .get(&room_id)
-            .ok_or(RoomPersistenceError::NotFound(room_id))?;
+            .ok_or_else::<RoomPersistenceError, _>(|| RoomNotFoundError(room_id).into())?;
         Ok(from_stored_room(room_id, stored_room))
     }
 
