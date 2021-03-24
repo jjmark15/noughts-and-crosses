@@ -24,7 +24,7 @@ warp = "0.3"
 [dev-dependencies]
 
 # workspace deps
-functional_testing = { path = "./crates/functional_testing" }
+nc_test_client = { path = "crates/nc_test_client" }
 
 # crates.io deps
 lazy_static = "1.4"

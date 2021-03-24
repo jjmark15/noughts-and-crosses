@@ -1,6 +1,6 @@
 use spectral::prelude::*;
 
-use functional_testing::http::StatusCode;
+use nc_test_client::http::StatusCode;
 
 use crate::helpers::app_client;
 

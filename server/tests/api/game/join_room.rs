@@ -1,7 +1,7 @@
 use spectral::prelude::*;
 use warp::http::StatusCode;
 
-use functional_testing::TungsteniteError;
+use nc_test_client::TungsteniteError;
 
 use crate::helpers::{app_client, create_room, create_user, non_existent_id};
 

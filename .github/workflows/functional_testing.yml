@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'server/crates/functional_testing/**'
-      - '.github/workflows/functional_testing.yml'
+      - 'server/crates/nc_test_client/**'
+      - '.github/workflows/nc_test_client.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'server/crates/functional_testing/**'
-      - '.github/workflows/functional_testing.yml'
+      - 'server/crates/nc_test_client/**'
+      - '.github/workflows/nc_test_client.yml'
 
 env:
   CARGO_TERM_COLOR: always
@@ -28,6 +28,6 @@ jobs:
           path: server/target
           key: ${{ runner.os }}-cargo-build-target-ft-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
-        run: cargo build --tests --manifest-path ./server/crates/functional_testing/Cargo.toml --verbose
+        run: cargo build --tests --manifest-path ./server/crates/nc_test_client/Cargo.toml --verbose
       - name: Run tests
-        run: cargo test --manifest-path ./server/crates/functional_testing/Cargo.toml --verbose
+        run: cargo test --manifest-path ./server/crates/nc_test_client/Cargo.toml --verbose

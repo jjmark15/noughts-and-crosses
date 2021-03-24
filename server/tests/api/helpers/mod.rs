@@ -3,8 +3,8 @@ use spectral::prelude::*;
 use uuid::Uuid;
 use warp::http::StatusCode;
 
-use functional_testing::response::{CreateRoomResponse, RegisteredUserResponse};
-use functional_testing::{AppClient, GameMove};
+use nc_test_client::response::{CreateRoomResponse, RegisteredUserResponse};
+use nc_test_client::{AppClient, GameMove};
 
 pub(crate) mod game_moves;
 

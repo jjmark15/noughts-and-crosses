@@ -1,5 +1,5 @@
 [package]
-name = "functional_testing"
+name = "nc_test_client"
 version = "0.1.0"
 authors = ["Josh Jones <ohblonddev@gmail.com>"]
 edition = "2018"

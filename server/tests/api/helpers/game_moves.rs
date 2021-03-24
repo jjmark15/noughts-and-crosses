@@ -1,4 +1,4 @@
-use functional_testing::{GameMove, GameMovePosition};
+use nc_test_client::{GameMove, GameMovePosition};
 
 pub(crate) fn top_left() -> GameMove {
     GameMove::new(GameMovePosition::new(0, 0))

@@ -5,6 +5,6 @@ pub use app_client::*;
 mod app_client;
 
 pub mod http {
-    pub use reqwest::{Method, StatusCode};
+    pub use reqwest::StatusCode;
 }
 pub mod response;

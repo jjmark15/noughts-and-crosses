@@ -1,7 +1,7 @@
 use spectral::prelude::*;
 
-use functional_testing::http::StatusCode;
-use functional_testing::response::RegisteredUserResponse;
+use nc_test_client::http::StatusCode;
+use nc_test_client::response::RegisteredUserResponse;
 
 use crate::helpers::app_client;
 

@@ -231,19 +231,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 
 [[package]]
-name = "functional_testing"
-version = "0.1.0"
-dependencies = [
- "futures-util",
- "reqwest",
- "serde",
- "tokio",
- "tokio-tungstenite",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "futures"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -675,6 +662,19 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
+]
+
+[[package]]
+name = "nc_test_client"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "reqwest",
+ "serde",
+ "tokio",
+ "tokio-tungstenite",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -1257,10 +1257,10 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "env_logger",
- "functional_testing",
  "futures-util",
  "lazy_static",
  "log",
+ "nc_test_client",
  "parking_lot",
  "percent-encoding",
  "serde",

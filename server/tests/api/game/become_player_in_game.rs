@@ -1,7 +1,7 @@
 use spectral::prelude::*;
 
-use functional_testing::http::StatusCode;
-use functional_testing::response::SimpleErrorResponse;
+use nc_test_client::http::StatusCode;
+use nc_test_client::response::SimpleErrorResponse;
 
 use crate::helpers::{
     app_client, become_player, create_room, create_user, join_room, non_existent_id, start_new_game,

@@ -1,7 +1,7 @@
 use spectral::prelude::*;
 
-use functional_testing::http::StatusCode;
-use functional_testing::response::SimpleErrorResponse;
+use nc_test_client::http::StatusCode;
+use nc_test_client::response::SimpleErrorResponse;
 
 use crate::helpers::game_moves::{
     top_left, x_position_above_valid_range, x_position_below_valid_range,
