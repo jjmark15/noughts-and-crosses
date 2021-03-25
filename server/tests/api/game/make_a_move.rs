@@ -252,7 +252,7 @@ async fn move_fails_when_not_players_turn() {
     assert_that(&game_move_response.status()).is_equal_to(&StatusCode::NOT_ACCEPTABLE);
     let error_response: SimpleErrorResponse = game_move_response.json().await.unwrap();
     assert_that(&error_response.cause())
-        .is_equal_to(&"User attempted to move out of turn".to_string());
+        .is_equal_to(&"Player attempted to move out of turn".to_string());
     app_client.close_socket_connection().await;
     other_app_client.close_socket_connection().await;
 }

@@ -73,7 +73,8 @@ where
             return Err(UserNotAPlayerInGameError(user_id).into());
         }
 
-        self.game_play_service.apply_move(&mut game, game_move)?;
+        self.game_play_service
+            .apply_move(&mut game, game_move, user_id)?;
         self.game_repository.update(&game).await?;
         Ok(())
     }
