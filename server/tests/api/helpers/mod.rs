@@ -17,7 +17,7 @@ lazy_static! {
     };
 }
 
-pub fn app_client() -> AppClient {
+pub fn new_app_client() -> AppClient {
     AppClient::new(GAME_SERVER_HOST.clone())
 }
 

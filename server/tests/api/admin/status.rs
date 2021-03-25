@@ -2,11 +2,11 @@ use spectral::prelude::*;
 
 use nc_test_client::http::StatusCode;
 
-use crate::helpers::app_client;
+use crate::helpers::new_app_client;
 
 #[tokio::test]
 async fn returns_status() {
-    let app_client = app_client();
+    let app_client = new_app_client();
 
     let response = app_client.status().await;
 

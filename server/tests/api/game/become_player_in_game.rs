@@ -4,12 +4,13 @@ use nc_test_client::http::StatusCode;
 use nc_test_client::response::SimpleErrorResponse;
 
 use crate::helpers::{
-    app_client, become_player, create_room, create_user, join_room, non_existent_id, start_new_game,
+    become_player, create_room, create_user, join_room, new_app_client, non_existent_id,
+    start_new_game,
 };
 
 #[tokio::test]
 async fn user_becomes_player_in_game() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;
@@ -23,7 +24,7 @@ async fn user_becomes_player_in_game() {
 
 #[tokio::test]
 async fn become_player_does_nothing_if_user_is_already_player() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;
@@ -39,7 +40,7 @@ async fn become_player_does_nothing_if_user_is_already_player() {
 
 #[tokio::test]
 async fn become_player_fails_if_user_is_not_in_room() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let not_in_room_user_id = create_user(&app_client).await;
     let in_room_user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, in_room_user_id).await;
@@ -59,7 +60,7 @@ async fn become_player_fails_if_user_is_not_in_room() {
 
 #[tokio::test]
 async fn become_player_fails_if_user_does_not_exist() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let fake_user_id = non_existent_id();
     let room_id = create_room(&app_client, user_id).await;
@@ -77,7 +78,7 @@ async fn become_player_fails_if_user_does_not_exist() {
 
 #[tokio::test]
 async fn become_player_fails_if_room_does_not_exist() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = non_existent_id();
 
@@ -92,7 +93,7 @@ async fn become_player_fails_if_room_does_not_exist() {
 
 #[tokio::test]
 async fn become_player_fails_if_there_is_no_active_game() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;
@@ -110,9 +111,9 @@ async fn become_player_fails_if_there_is_no_active_game() {
 
 #[tokio::test]
 async fn become_player_fails_if_there_are_already_two_players() {
-    let mut app_client_1 = app_client();
-    let mut app_client_2 = app_client();
-    let mut app_client_3 = app_client();
+    let mut app_client_1 = new_app_client();
+    let mut app_client_2 = new_app_client();
+    let mut app_client_3 = new_app_client();
     let user_id_1 = create_user(&app_client_1).await;
     let user_id_2 = create_user(&app_client_2).await;
     let user_id_3 = create_user(&app_client_3).await;
@@ -136,7 +137,7 @@ async fn become_player_fails_if_there_are_already_two_players() {
 
 #[tokio::test]
 async fn player_is_removed_if_leaves_room() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;

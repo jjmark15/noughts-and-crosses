@@ -3,11 +3,11 @@ use spectral::prelude::*;
 use nc_test_client::http::StatusCode;
 use nc_test_client::response::{RegisteredUserResponse, SimpleErrorResponse};
 
-use crate::helpers::{app_client, non_existent_id};
+use crate::helpers::{new_app_client, non_existent_id};
 
 #[tokio::test]
 async fn returns_name_given_user_id() {
-    let app_client = app_client();
+    let app_client = new_app_client();
 
     let id = app_client
         .register_user("Name")
@@ -26,7 +26,7 @@ async fn returns_name_given_user_id() {
 
 #[tokio::test]
 async fn get_user_name_fails_if_user_with_id_does_not_exist() {
-    let app_client = app_client();
+    let app_client = new_app_client();
     let id = non_existent_id();
 
     let response = app_client.user_name(id).await;
@@ -44,7 +44,7 @@ async fn get_user_name_fails_if_user_with_id_does_not_exist() {
 
 #[tokio::test]
 async fn get_user_name_fails_given_invalid_id() {
-    let app_client = app_client();
+    let app_client = new_app_client();
     let id = "invalid_id";
 
     let response = app_client.user_name(id.to_string()).await;

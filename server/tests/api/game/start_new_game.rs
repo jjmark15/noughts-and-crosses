@@ -3,11 +3,11 @@ use spectral::prelude::*;
 use nc_test_client::http::StatusCode;
 use nc_test_client::response::SimpleErrorResponse;
 
-use crate::helpers::{app_client, create_room, create_user, join_room, non_existent_id};
+use crate::helpers::{create_room, create_user, join_room, new_app_client, non_existent_id};
 
 #[tokio::test]
 async fn starts_new_game() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;
@@ -21,7 +21,7 @@ async fn starts_new_game() {
 
 #[tokio::test]
 async fn fails_if_user_is_not_in_room() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = create_room(&app_client, user_id).await;
 
@@ -39,7 +39,7 @@ async fn fails_if_user_is_not_in_room() {
 
 #[tokio::test]
 async fn fails_if_user_does_not_exist() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = non_existent_id();
     let room_id = create_room(&app_client, create_user(&app_client).await).await;
 
@@ -56,7 +56,7 @@ async fn fails_if_user_does_not_exist() {
 
 #[tokio::test]
 async fn fails_if_room_does_not_exist() {
-    let mut app_client = app_client();
+    let mut app_client = new_app_client();
     let user_id = create_user(&app_client).await;
     let room_id = non_existent_id();
 

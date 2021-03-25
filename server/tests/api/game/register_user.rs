@@ -3,11 +3,11 @@ use spectral::prelude::*;
 use nc_test_client::http::StatusCode;
 use nc_test_client::response::RegisteredUserResponse;
 
-use crate::helpers::app_client;
+use crate::helpers::new_app_client;
 
 #[tokio::test]
 async fn registers_user_with_name() {
-    let app_client = app_client();
+    let app_client = new_app_client();
 
     let register_response = app_client.register_user("Name").await;
 
@@ -26,7 +26,7 @@ async fn registers_user_with_name() {
 
 #[tokio::test]
 async fn registers_user_with_name_including_spaces() {
-    let app_client = app_client();
+    let app_client = new_app_client();
 
     let register_response = app_client.register_user("First Last").await;
 

@@ -3,11 +3,11 @@ use spectral::prelude::*;
 use nc_test_client::http::StatusCode;
 use nc_test_client::response::{CreateRoomResponse, SimpleErrorResponse};
 
-use crate::helpers::{app_client, create_user, non_existent_id};
+use crate::helpers::{create_user, new_app_client, non_existent_id};
 
 #[tokio::test]
 async fn creates_room() {
-    let app_client = app_client();
+    let app_client = new_app_client();
     let user_id = create_user(&app_client).await;
 
     let create_room_response: CreateRoomResponse =
@@ -18,7 +18,7 @@ async fn creates_room() {
 
 #[tokio::test]
 async fn create_room_fails_given_fake_user_id() {
-    let app_client = app_client();
+    let app_client = new_app_client();
     let user_id = non_existent_id();
 
     let create_room_response = app_client.create_room(user_id).await;
