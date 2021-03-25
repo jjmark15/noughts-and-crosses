@@ -4,7 +4,7 @@ use nc_test_client::http::StatusCode;
 use nc_test_client::response::SimpleErrorResponse;
 
 use crate::helpers::game_moves::{
-    top_left, x_position_above_valid_range, x_position_below_valid_range,
+    top_center, top_left, top_right, x_position_above_valid_range, x_position_below_valid_range,
     y_position_above_valid_range, y_position_below_valid_range,
 };
 use crate::helpers::{
@@ -229,4 +229,53 @@ async fn move_fails_if_room_does_not_exist() {
     assert_that(&error_response.cause())
         .is_equal_to(&format!("Could not find room with id: {}", room_id));
     app_client.close_socket_connection().await;
+}
+
+#[tokio::test]
+async fn move_fails_when_not_players_turn() {
+    let mut app_client = new_app_client();
+    let mut other_app_client = new_app_client();
+    let user_id = create_user(&app_client).await;
+    let other_user_id = create_user(&other_app_client).await;
+    let room_id = create_room(&app_client, user_id).await;
+    join_room(&mut app_client, user_id, room_id).await;
+    join_room(&mut other_app_client, other_user_id, room_id).await;
+    start_new_game(&app_client, user_id, room_id).await;
+    become_player(&app_client, user_id, room_id).await;
+    become_player(&other_app_client, other_user_id, room_id).await;
+    make_game_move(&app_client, user_id, room_id, top_left()).await;
+
+    let game_move_response = app_client
+        .make_game_move(user_id, room_id, top_right())
+        .await;
+
+    assert_that(&game_move_response.status()).is_equal_to(&StatusCode::NOT_ACCEPTABLE);
+    let error_response: SimpleErrorResponse = game_move_response.json().await.unwrap();
+    assert_that(&error_response.cause())
+        .is_equal_to(&"User attempted to move out of turn".to_string());
+    app_client.close_socket_connection().await;
+    other_app_client.close_socket_connection().await;
+}
+
+#[tokio::test]
+async fn player_turns_end_after_a_move_is_made() {
+    let mut app_client = new_app_client();
+    let mut other_app_client = new_app_client();
+    let user_id = create_user(&app_client).await;
+    let other_user_id = create_user(&other_app_client).await;
+    let room_id = create_room(&app_client, user_id).await;
+    join_room(&mut app_client, user_id, room_id).await;
+    join_room(&mut other_app_client, other_user_id, room_id).await;
+    start_new_game(&app_client, user_id, room_id).await;
+    become_player(&app_client, user_id, room_id).await;
+    become_player(&other_app_client, other_user_id, room_id).await;
+    make_game_move(&app_client, user_id, room_id, top_left()).await;
+    make_game_move(&other_app_client, other_user_id, room_id, top_center()).await;
+
+    let game_move_response = app_client
+        .make_game_move(user_id, room_id, top_right())
+        .await;
+
+    assert_that(&game_move_response.status()).is_equal_to(&StatusCode::ACCEPTED);
+    other_app_client.close_socket_connection().await;
 }

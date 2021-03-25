@@ -4,6 +4,14 @@ pub(crate) fn top_left() -> GameMove {
     GameMove::new(GameMovePosition::new(0, 0))
 }
 
+pub(crate) fn top_center() -> GameMove {
+    GameMove::new(GameMovePosition::new(1, 0))
+}
+
+pub(crate) fn top_right() -> GameMove {
+    GameMove::new(GameMovePosition::new(2, 0))
+}
+
 pub(crate) fn x_position_below_valid_range() -> GameMove {
     GameMove::new(GameMovePosition::new(-1, 0))
 }
