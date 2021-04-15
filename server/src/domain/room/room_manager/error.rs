@@ -57,7 +57,7 @@ impl From<UpdateRoomError> for NewGameError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum RoomAssignmentError {
+pub(crate) enum JoinRoomError {
     #[error("Users cannot be assigned to multiple rooms")]
     AlreadyAssigned,
     #[error(transparent)]
@@ -68,7 +68,7 @@ pub(crate) enum RoomAssignmentError {
     GameNotFound(#[from] GameNotFoundError),
 }
 
-impl From<GetUserError> for RoomAssignmentError {
+impl From<GetUserError> for JoinRoomError {
     fn from(err: GetUserError) -> Self {
         match err {
             GetUserError::NotFound(user_not_found_error) => user_not_found_error.into(),
@@ -76,7 +76,7 @@ impl From<GetUserError> for RoomAssignmentError {
     }
 }
 
-impl From<GetRoomError> for RoomAssignmentError {
+impl From<GetRoomError> for JoinRoomError {
     fn from(err: GetRoomError) -> Self {
         match err {
             GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
@@ -84,15 +84,15 @@ impl From<GetRoomError> for RoomAssignmentError {
     }
 }
 
-impl From<UpdateRoomError> for RoomAssignmentError {
+impl From<UpdateRoomError> for JoinRoomError {
     fn from(err: UpdateRoomError) -> Self {
         match err {
-            UpdateRoomError::NotFound(err) => RoomAssignmentError::RoomNotFound(err),
+            UpdateRoomError::NotFound(err) => JoinRoomError::RoomNotFound(err),
         }
     }
 }
 
-impl From<GetGameError> for RoomAssignmentError {
+impl From<GetGameError> for JoinRoomError {
     fn from(err: GetGameError) -> Self {
         match err {
             GetGameError::NotFound(game_not_found_error) => game_not_found_error.into(),
@@ -177,7 +177,7 @@ impl From<UpdateGameError> for RemovePlayerError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum RemoveUserError {
+pub(crate) enum LeaveRoomError {
     #[error(transparent)]
     UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
@@ -186,31 +186,31 @@ pub(crate) enum RemoveUserError {
     RoomNotFound(#[from] RoomNotFoundError),
 }
 
-impl From<GetUserError> for RemoveUserError {
+impl From<GetUserError> for LeaveRoomError {
     fn from(err: GetUserError) -> Self {
         match err {
             GetUserError::NotFound(user_not_found_err) => {
-                RemoveUserError::UserNotFound(user_not_found_err)
+                LeaveRoomError::UserNotFound(user_not_found_err)
             }
         }
     }
 }
 
-impl From<RemovePlayerError> for RemoveUserError {
+impl From<RemovePlayerError> for LeaveRoomError {
     fn from(err: RemovePlayerError) -> Self {
         match err {
             RemovePlayerError::GameNotFound(game_not_found) => {
-                RemoveUserError::GameNotFound(game_not_found)
+                LeaveRoomError::GameNotFound(game_not_found)
             }
         }
     }
 }
 
-impl From<UpdateRoomError> for RemoveUserError {
+impl From<UpdateRoomError> for LeaveRoomError {
     fn from(err: UpdateRoomError) -> Self {
         match err {
             UpdateRoomError::NotFound(room_not_found) => {
-                RemoveUserError::RoomNotFound(room_not_found)
+                LeaveRoomError::RoomNotFound(room_not_found)
             }
         }
     }

@@ -11,7 +11,7 @@ use warp::ws::WebSocket;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, JoinRoomError};
-use crate::domain::room::RoomAssignmentError;
+use crate::domain::room::JoinRoomError as DomainJoinRoomError;
 use crate::ports::http::warp::{
     with_application_service, with_user_client_provider, WsUserClientAdapter,
     WsUserClientProviderAdapter,
@@ -123,14 +123,12 @@ async fn user_disconnected<AS>(
 }
 
 fn join_room_error_response(err: JoinRoomError) -> Response {
-    let status_code = match &err {
-        JoinRoomError::RoomAssignment(assignment_error) => match assignment_error {
-            RoomAssignmentError::AlreadyAssigned => StatusCode::CONFLICT,
-            RoomAssignmentError::UserNotFound(_) | RoomAssignmentError::RoomNotFound(_) => {
-                StatusCode::NOT_FOUND
-            }
-            RoomAssignmentError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        },
+    let status_code = match err.cause() {
+        DomainJoinRoomError::AlreadyAssigned => StatusCode::CONFLICT,
+        DomainJoinRoomError::UserNotFound(_) | DomainJoinRoomError::RoomNotFound(_) => {
+            StatusCode::NOT_FOUND
+        }
+        DomainJoinRoomError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
     };
     warp::reply::with_status(warp::reply(), status_code).into_response()
 }

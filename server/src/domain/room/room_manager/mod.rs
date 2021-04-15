@@ -13,9 +13,9 @@ mod error;
 
 #[async_trait::async_trait]
 pub(crate) trait RoomManager {
-    async fn assign_user(&self, user_id: Uuid, room_id: Uuid) -> Result<(), RoomAssignmentError>;
+    async fn join_room(&self, user_id: Uuid, room_id: Uuid) -> Result<(), JoinRoomError>;
 
-    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RemoveUserError>;
+    async fn leave_room(&self, user_id: Uuid) -> Result<(), LeaveRoomError>;
 
     async fn start_new_game(&self, room_id: Uuid, user_id: Uuid) -> Result<(), NewGameError>;
 
@@ -78,10 +78,10 @@ where
     GR: GameRepository + Send + Sync,
     GPS: GamePlayService + Send + Sync,
 {
-    async fn assign_user(&self, user_id: Uuid, room_id: Uuid) -> Result<(), RoomAssignmentError> {
+    async fn join_room(&self, user_id: Uuid, room_id: Uuid) -> Result<(), JoinRoomError> {
         let user = self.user_repository.get(user_id).await?;
         if !self.room_repository.have_member(&user).await.is_empty() {
-            return Err(RoomAssignmentError::AlreadyAssigned);
+            return Err(JoinRoomError::AlreadyAssigned);
         }
         let mut room = self.room_repository.get(room_id).await?;
         room.add_member(user.id());
@@ -89,7 +89,7 @@ where
         Ok(())
     }
 
-    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RemoveUserError> {
+    async fn leave_room(&self, user_id: Uuid) -> Result<(), LeaveRoomError> {
         let user = self.user_repository.get(user_id).await?;
         let mut rooms = self.room_repository.have_member(&user).await;
         rooms

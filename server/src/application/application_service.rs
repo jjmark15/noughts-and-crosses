@@ -130,14 +130,14 @@ where
 
     async fn join_room(&self, room_id: Uuid, user_id: Uuid) -> Result<(), JoinRoomError> {
         self.room_manager
-            .assign_user(user_id, room_id)
+            .join_room(user_id, room_id)
             .await
             .map_err(JoinRoomError::from)
     }
 
     async fn leave_room(&self, user_id: Uuid) -> Result<(), LeaveRoomError> {
         self.room_manager
-            .unassign_user(user_id)
+            .leave_room(user_id)
             .await
             .map_err(LeaveRoomError::from)
     }
