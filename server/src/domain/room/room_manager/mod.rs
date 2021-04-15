@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 pub(crate) use error::*;
 
-use crate::domain::game::{Game, GameMove, GamePersistenceError, GamePlayService, GameRepository};
+use crate::domain::game::{Game, GameMove, GamePlayService, GameRepository};
 use crate::domain::room::{Room, RoomRepository};
 use crate::domain::user::{User, UserRepository};
 
@@ -15,18 +15,14 @@ mod error;
 pub(crate) trait RoomManager {
     async fn assign_user(&self, user_id: Uuid, room_id: Uuid) -> Result<(), RoomAssignmentError>;
 
-    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RoomAssignmentError>;
+    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RemoveUserError>;
 
     async fn start_new_game(&self, room_id: Uuid, user_id: Uuid) -> Result<(), NewGameError>;
 
     async fn make_game_move(&self, room_id: Uuid, game_move: GameMove)
         -> Result<(), GameMoveError>;
 
-    async fn add_player(
-        &self,
-        room_id: Uuid,
-        user_id: Uuid,
-    ) -> Result<Option<()>, GameAssignmentError>;
+    async fn add_player(&self, room_id: Uuid, user_id: Uuid) -> Result<Option<()>, AddPlayerError>;
 }
 
 pub(crate) struct RoomManagerImpl<
@@ -66,11 +62,7 @@ where
         room.is_member(user.id())
     }
 
-    async fn remove_player(
-        &self,
-        user_id: Uuid,
-        game_id: Uuid,
-    ) -> Result<(), GamePersistenceError> {
+    async fn remove_player(&self, user_id: Uuid, game_id: Uuid) -> Result<(), RemovePlayerError> {
         let mut game = self.game_repository.get(game_id).await?;
         game.remove_player(user_id);
         self.game_repository.update(&game).await?;
@@ -97,7 +89,7 @@ where
         Ok(())
     }
 
-    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RoomAssignmentError> {
+    async fn unassign_user(&self, user_id: Uuid) -> Result<(), RemoveUserError> {
         let user = self.user_repository.get(user_id).await?;
         let mut rooms = self.room_repository.have_member(&user).await;
         rooms
@@ -166,21 +158,17 @@ where
         }
     }
 
-    async fn add_player(
-        &self,
-        room_id: Uuid,
-        user_id: Uuid,
-    ) -> Result<Option<()>, GameAssignmentError> {
+    async fn add_player(&self, room_id: Uuid, user_id: Uuid) -> Result<Option<()>, AddPlayerError> {
         let user = self
             .user_repository
             .get(user_id)
             .await
-            .map_err(GameAssignmentError::from)?;
+            .map_err(AddPlayerError::from)?;
         let room = self
             .room_repository
             .get(room_id)
             .await
-            .map_err(GameAssignmentError::from)?;
+            .map_err(AddPlayerError::from)?;
 
         if !Self::user_is_in_room(&user, &room) {
             return Err(UserNotInRoomError::new(user_id, room_id).into());
@@ -194,10 +182,7 @@ where
             .ok_or(NoActiveGameInRoomError(room_id))?;
 
         let mut game = self.game_repository.get(game_id).await?;
-        if let Some(()) = game
-            .add_player(user_id)
-            .map_err(GameAssignmentError::from)?
-        {
+        if let Some(()) = game.add_player(user_id).map_err(AddPlayerError::from)? {
             self.game_repository.update(&game).await?;
             Ok(Some(()))
         } else {

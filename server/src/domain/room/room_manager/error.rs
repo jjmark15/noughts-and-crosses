@@ -1,7 +1,8 @@
 use uuid::Uuid;
 
 use crate::domain::game::{
-    GameNotFoundError, GamePersistenceError, GamePlayServiceError, PlayerCountExceededError,
+    GameNotFoundError, GamePlayServiceError, GetGameError, PlayerCountExceededError,
+    UpdateGameError,
 };
 use crate::domain::room::{GetRoomError, RoomNotFoundError, UpdateRoomError};
 use crate::domain::user::{UserNotFoundError, UserPersistenceError};
@@ -91,16 +92,16 @@ impl From<UpdateRoomError> for RoomAssignmentError {
     }
 }
 
-impl From<GamePersistenceError> for RoomAssignmentError {
-    fn from(err: GamePersistenceError) -> Self {
+impl From<GetGameError> for RoomAssignmentError {
+    fn from(err: GetGameError) -> Self {
         match err {
-            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
+            GetGameError::NotFound(game_not_found_error) => game_not_found_error.into(),
         }
     }
 }
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum GameAssignmentError {
+pub(crate) enum AddPlayerError {
     #[error(transparent)]
     UserNotFound(#[from] UserNotFoundError),
     #[error(transparent)]
@@ -115,7 +116,7 @@ pub(crate) enum GameAssignmentError {
     UserNotInRoom(#[from] UserNotInRoomError),
 }
 
-impl From<UserPersistenceError> for GameAssignmentError {
+impl From<UserPersistenceError> for AddPlayerError {
     fn from(err: UserPersistenceError) -> Self {
         match err {
             UserPersistenceError::NotFound(user_not_found_error) => user_not_found_error.into(),
@@ -123,7 +124,7 @@ impl From<UserPersistenceError> for GameAssignmentError {
     }
 }
 
-impl From<GetRoomError> for GameAssignmentError {
+impl From<GetRoomError> for AddPlayerError {
     fn from(err: GetRoomError) -> Self {
         match err {
             GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
@@ -131,10 +132,86 @@ impl From<GetRoomError> for GameAssignmentError {
     }
 }
 
-impl From<GamePersistenceError> for GameAssignmentError {
-    fn from(err: GamePersistenceError) -> Self {
+impl From<GetGameError> for AddPlayerError {
+    fn from(err: GetGameError) -> Self {
         match err {
-            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
+            GetGameError::NotFound(game_not_found_error) => game_not_found_error.into(),
+        }
+    }
+}
+
+impl From<UpdateGameError> for AddPlayerError {
+    fn from(err: UpdateGameError) -> Self {
+        match err {
+            UpdateGameError::NotFound(game_not_found) => {
+                AddPlayerError::GameNotFound(game_not_found)
+            }
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum RemovePlayerError {
+    #[error(transparent)]
+    GameNotFound(#[from] GameNotFoundError),
+}
+
+impl From<GetGameError> for RemovePlayerError {
+    fn from(err: GetGameError) -> Self {
+        match err {
+            GetGameError::NotFound(game_not_found_err) => {
+                RemovePlayerError::GameNotFound(game_not_found_err)
+            }
+        }
+    }
+}
+
+impl From<UpdateGameError> for RemovePlayerError {
+    fn from(err: UpdateGameError) -> Self {
+        match err {
+            UpdateGameError::NotFound(game_not_found_err) => {
+                RemovePlayerError::GameNotFound(game_not_found_err)
+            }
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum RemoveUserError {
+    #[error(transparent)]
+    UserNotFound(#[from] UserNotFoundError),
+    #[error(transparent)]
+    GameNotFound(#[from] GameNotFoundError),
+    #[error(transparent)]
+    RoomNotFound(#[from] RoomNotFoundError),
+}
+
+impl From<UserPersistenceError> for RemoveUserError {
+    fn from(err: UserPersistenceError) -> Self {
+        match err {
+            UserPersistenceError::NotFound(user_not_found_err) => {
+                RemoveUserError::UserNotFound(user_not_found_err)
+            }
+        }
+    }
+}
+
+impl From<RemovePlayerError> for RemoveUserError {
+    fn from(err: RemovePlayerError) -> Self {
+        match err {
+            RemovePlayerError::GameNotFound(game_not_found) => {
+                RemoveUserError::GameNotFound(game_not_found)
+            }
+        }
+    }
+}
+
+impl From<UpdateRoomError> for RemoveUserError {
+    fn from(err: UpdateRoomError) -> Self {
+        match err {
+            UpdateRoomError::NotFound(room_not_found) => {
+                RemoveUserError::RoomNotFound(room_not_found)
+            }
         }
     }
 }
@@ -173,10 +250,18 @@ impl From<GetRoomError> for GameMoveError {
     }
 }
 
-impl From<GamePersistenceError> for GameMoveError {
-    fn from(err: GamePersistenceError) -> Self {
+impl From<GetGameError> for GameMoveError {
+    fn from(err: GetGameError) -> Self {
         match err {
-            GamePersistenceError::NotFound(game_not_found_error) => game_not_found_error.into(),
+            GetGameError::NotFound(game_not_found_error) => game_not_found_error.into(),
+        }
+    }
+}
+
+impl From<UpdateGameError> for GameMoveError {
+    fn from(err: UpdateGameError) -> Self {
+        match err {
+            UpdateGameError::NotFound(game_not_found_error) => game_not_found_error.into(),
         }
     }
 }

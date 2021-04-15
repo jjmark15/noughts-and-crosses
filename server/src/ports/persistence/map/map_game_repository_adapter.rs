@@ -5,7 +5,8 @@ use parking_lot::Mutex;
 use uuid::Uuid;
 
 use crate::domain::game::{
-    Game, GameMove, GameMovePosition, GameNotFoundError, GamePersistenceError, GameRepository,
+    Game, GameMove, GameMovePosition, GameNotFoundError, GameRepository, GameWithIdAlreadyExists,
+    GetGameError, StoreGameError, UpdateGameError,
 };
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredGame>>>;
@@ -24,26 +25,28 @@ impl MapGameRepositoryAdapter {
 
 #[async_trait::async_trait]
 impl GameRepository for MapGameRepositoryAdapter {
-    async fn get(&self, game_id: Uuid) -> Result<Game, GamePersistenceError> {
+    async fn get(&self, game_id: Uuid) -> Result<Game, GetGameError> {
         let map = self.inner.lock();
         let stored_game = map
             .get(&game_id)
-            .ok_or_else::<GamePersistenceError, _>(|| GameNotFoundError(game_id).into())?;
+            .ok_or_else::<GetGameError, _>(|| GameNotFoundError(game_id).into())?;
         Ok(from_stored_game(game_id, stored_game))
     }
 
-    async fn store(&self, game: &Game) -> Result<(), GamePersistenceError> {
+    async fn store(&self, game: &Game) -> Result<(), StoreGameError> {
         let mut map = self.inner.lock();
-        map.insert(game.id(), game.into());
+        if map.insert(game.id(), game.into()).is_some() {
+            return Err(GameWithIdAlreadyExists(game.id()).into());
+        }
         Ok(())
     }
 
-    async fn update(&self, game: &Game) -> Result<(), GamePersistenceError> {
+    async fn update(&self, game: &Game) -> Result<(), UpdateGameError> {
         let game_id = game.id();
         let mut map = self.inner.lock();
         let _stored_game = map
             .get(&game_id)
-            .ok_or_else::<GamePersistenceError, _>(|| GameNotFoundError(game_id).into())?;
+            .ok_or_else::<UpdateGameError, _>(|| GameNotFoundError(game_id).into())?;
         map.insert(game_id, game.into());
         Ok(())
     }

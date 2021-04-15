@@ -7,7 +7,7 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, BecomePlayerError};
-use crate::domain::room::GameAssignmentError;
+use crate::domain::room::AddPlayerError;
 use crate::ports::http::warp::responses::SimpleErrorResponse;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
@@ -47,12 +47,12 @@ where
 
 fn become_player_error_response(err: BecomePlayerError) -> Response {
     let status_code = match err.cause() {
-        GameAssignmentError::NoActiveGameInRoom(_)
-        | GameAssignmentError::UserNotFound(_)
-        | GameAssignmentError::RoomNotFound(_) => StatusCode::NOT_FOUND,
-        GameAssignmentError::PlayerCountExceeded(_) => StatusCode::NOT_ACCEPTABLE,
-        GameAssignmentError::UserNotInRoom(_) => StatusCode::NOT_ACCEPTABLE,
-        GameAssignmentError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        AddPlayerError::NoActiveGameInRoom(_)
+        | AddPlayerError::UserNotFound(_)
+        | AddPlayerError::RoomNotFound(_) => StatusCode::NOT_FOUND,
+        AddPlayerError::PlayerCountExceeded(_) => StatusCode::NOT_ACCEPTABLE,
+        AddPlayerError::UserNotInRoom(_) => StatusCode::NOT_ACCEPTABLE,
+        AddPlayerError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
     };
 
     let error_body = SimpleErrorResponse::new(err.to_string());
