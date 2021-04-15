@@ -122,8 +122,8 @@ async fn become_player_fails_if_there_are_already_two_players() {
     join_room(&mut app_client_2, user_id_2, room_id).await;
     join_room(&mut app_client_3, user_id_3, room_id).await;
     start_new_game(&app_client_1, user_id_1, room_id).await;
-    become_player(&mut app_client_1, user_id_1, room_id).await;
-    become_player(&mut app_client_2, user_id_2, room_id).await;
+    become_player(&app_client_1, user_id_1, room_id).await;
+    become_player(&app_client_2, user_id_2, room_id).await;
 
     let become_player_response = app_client_3.become_player(user_id_3, room_id).await;
 
@@ -142,7 +142,7 @@ async fn player_is_removed_if_leaves_room() {
     let room_id = create_room(&app_client, user_id).await;
     join_room(&mut app_client, user_id, room_id).await;
     start_new_game(&app_client, user_id, room_id).await;
-    become_player(&mut app_client, user_id, room_id).await;
+    become_player(&app_client, user_id, room_id).await;
 
     app_client.close_socket_connection().await;
     join_room(&mut app_client, user_id, room_id).await;
