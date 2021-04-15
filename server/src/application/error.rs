@@ -13,12 +13,12 @@ pub(crate) struct RoomCreationError {
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-pub(crate) struct AddUserError {
+pub(crate) struct RegisterUserError {
     #[from]
     cause: StoreUserError,
 }
 
-impl AddUserError {
+impl RegisterUserError {
     pub(crate) fn cause(&self) -> &StoreUserError {
         &self.cause
     }

@@ -5,7 +5,7 @@ use warp::http::StatusCode;
 use warp::reply::Response;
 use warp::Filter;
 
-use crate::application::{AddUserError, ApplicationService};
+use crate::application::{ApplicationService, RegisterUserError};
 use crate::domain::user::StoreUserError;
 use crate::ports::http::warp::responses::RegisterUserResponse;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service, PercentDecoded};
@@ -38,7 +38,7 @@ async fn register_user_handler<AS: ApplicationService>(
     }
 }
 
-fn register_user_error_response(err: AddUserError) -> Response {
+fn register_user_error_response(err: RegisterUserError) -> Response {
     match err.cause() {
         StoreUserError::AlreadyExists(_) => unimplemented!(),
     }
