@@ -4,17 +4,17 @@ use uuid::Uuid;
 
 use crate::application::error::RoomCreationError;
 use crate::application::{
-    ApplicationServiceGameMove, BecomePlayerError, GameMoveError, JoinRoomError, LeaveRoomError,
-    NewGameError, UserPersistenceError,
+    AddUserError, ApplicationServiceGameMove, BecomePlayerError, GameMoveError, JoinRoomError,
+    LeaveRoomError, NewGameError,
 };
 use crate::domain::room::{RoomFactory, RoomManager, RoomRepository};
-use crate::domain::user::{UserFactory, UserRepository};
+use crate::domain::user::{GetUserError, UserFactory, UserRepository};
 
 #[async_trait::async_trait]
 pub(crate) trait ApplicationService {
-    async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError>;
+    async fn register_user(&self, user_name: String) -> Result<Uuid, AddUserError>;
 
-    async fn get_user_name(&self, user_id: Uuid) -> Result<String, UserPersistenceError>;
+    async fn get_user_name(&self, user_id: Uuid) -> Result<String, GetUserError>;
 
     async fn create_room(&self) -> Result<Uuid, RoomCreationError>;
 
@@ -81,13 +81,13 @@ where
     UF: UserFactory + Send + Sync,
     RM: RoomManager + Send + Sync,
 {
-    async fn register_user(&self, user_name: String) -> Result<Uuid, UserPersistenceError> {
+    async fn register_user(&self, user_name: String) -> Result<Uuid, AddUserError> {
         let user = self.user_factory.create(user_name);
         self.user_repository.store(&user).await?;
         Ok(user.id())
     }
 
-    async fn get_user_name(&self, user_id: Uuid) -> Result<String, UserPersistenceError> {
+    async fn get_user_name(&self, user_id: Uuid) -> Result<String, GetUserError> {
         let user = self.user_repository.get(user_id).await?;
 
         Ok(user.name().to_string())

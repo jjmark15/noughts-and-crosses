@@ -7,7 +7,7 @@ use warp::reply::Response;
 use warp::{Filter, Reply};
 
 use crate::application::{ApplicationService, RoomCreationError};
-use crate::domain::user::UserPersistenceError;
+use crate::domain::user::GetUserError;
 use crate::ports::http::warp::responses::{CreateRoomResponse, SimpleErrorResponse};
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
@@ -28,8 +28,8 @@ where
     AS: ApplicationService + Send + Sync + 'static,
 {
     if let Err(err) = application_service.get_user_name(user_id).await {
-        return match err.cause() {
-            UserPersistenceError::NotFound(_) => Ok(json_reply_with_status(
+        return match err {
+            GetUserError::NotFound(_) => Ok(json_reply_with_status(
                 &SimpleErrorResponse::new(err.to_string()),
                 StatusCode::NOT_FOUND,
             )),

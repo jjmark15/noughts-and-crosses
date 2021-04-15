@@ -4,7 +4,10 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::user::{User, UserNotFoundError, UserPersistenceError, UserRepository};
+use crate::domain::user::{
+    GetUserError, StoreUserError, UpdateUserError, User, UserNotFoundError, UserRepository,
+    UserWithIdAlreadyExists,
+};
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredUser>>>;
 
@@ -22,22 +25,28 @@ impl MapUserRepositoryAdapter {
 
 #[async_trait::async_trait]
 impl UserRepository for MapUserRepositoryAdapter {
-    async fn store(&self, user: &User) -> Result<(), UserPersistenceError> {
+    async fn store(&self, user: &User) -> Result<(), StoreUserError> {
         let mut map = self.inner.lock();
+        if map.insert(user.id(), user.into()).is_some() {
+            return Err(UserWithIdAlreadyExists(user.id()).into());
+        }
+        Ok(())
+    }
+
+    async fn update(&self, user: &User) -> Result<(), UpdateUserError> {
+        let mut map = self.inner.lock();
+        let _stored_user = map
+            .get(&user.id())
+            .ok_or_else::<UpdateUserError, _>(|| UserNotFoundError(user.id()).into())?;
         map.insert(user.id(), user.into());
         Ok(())
     }
 
-    async fn update(&self, user: &User) -> Result<(), UserPersistenceError> {
-        self.get(user.id()).await?;
-        self.store(user).await
-    }
-
-    async fn get(&self, id: Uuid) -> Result<User, UserPersistenceError> {
+    async fn get(&self, id: Uuid) -> Result<User, GetUserError> {
         let map = self.inner.lock();
         let stored_user = map
             .get(&id)
-            .ok_or_else::<UserPersistenceError, _>(|| UserNotFoundError(id).into())?;
+            .ok_or_else::<GetUserError, _>(|| UserNotFoundError(id).into())?;
         let user = User::new(id, stored_user.name.to_string());
         Ok(user)
     }

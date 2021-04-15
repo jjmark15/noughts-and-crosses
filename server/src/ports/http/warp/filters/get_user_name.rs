@@ -6,8 +6,8 @@ use warp::http::StatusCode;
 use warp::reply::Response;
 use warp::{Filter, Reply};
 
-use crate::application::{ApplicationService, UserPersistenceError};
-use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
+use crate::application::ApplicationService;
+use crate::domain::user::GetUserError;
 use crate::ports::http::warp::responses::SimpleErrorResponse;
 use crate::ports::http::warp::{json_reply_with_status, with_application_service};
 
@@ -36,9 +36,9 @@ async fn get_user_name_handler<AS: ApplicationService>(
     }
 }
 
-fn get_user_name_error(err: UserPersistenceError) -> Response {
-    match err.cause() {
-        DomainUserPersistenceError::NotFound(_id) => json_reply_with_status(
+fn get_user_name_error(err: GetUserError) -> Response {
+    match err {
+        GetUserError::NotFound(_id) => json_reply_with_status(
             &SimpleErrorResponse::new(err.to_string()),
             StatusCode::NOT_FOUND,
         ),
