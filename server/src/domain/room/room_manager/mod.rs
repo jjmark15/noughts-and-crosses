@@ -88,7 +88,7 @@ where
 {
     async fn assign_user(&self, user_id: Uuid, room_id: Uuid) -> Result<(), RoomAssignmentError> {
         let user = self.user_repository.get(user_id).await?;
-        if !self.room_repository.have_member(&user).await?.is_empty() {
+        if !self.room_repository.have_member(&user).await.is_empty() {
             return Err(RoomAssignmentError::AlreadyAssigned);
         }
         let mut room = self.room_repository.get(room_id).await?;
@@ -99,7 +99,7 @@ where
 
     async fn unassign_user(&self, user_id: Uuid) -> Result<(), RoomAssignmentError> {
         let user = self.user_repository.get(user_id).await?;
-        let mut rooms = self.room_repository.have_member(&user).await?;
+        let mut rooms = self.room_repository.have_member(&user).await;
         rooms
             .iter_mut()
             .for_each(|room| room.remove_member(user_id));

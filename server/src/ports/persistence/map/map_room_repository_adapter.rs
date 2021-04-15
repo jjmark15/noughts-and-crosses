@@ -4,7 +4,10 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::domain::room::{Room, RoomNotFoundError, RoomPersistenceError, RoomRepository};
+use crate::domain::room::{
+    GetRoomError, Room, RoomNotFoundError, RoomRepository, RoomWithIdAlreadyExists, StoreRoomError,
+    UpdateRoomError,
+};
 use crate::domain::user::User;
 
 type EmbeddedDb = Arc<Mutex<HashMap<Uuid, StoredRoom>>>;
@@ -23,38 +26,38 @@ impl MapRoomRepositoryAdapter {
 
 #[async_trait::async_trait]
 impl RoomRepository for MapRoomRepositoryAdapter {
-    async fn store(&self, room: &Room) -> Result<(), RoomPersistenceError> {
+    async fn store(&self, room: &Room) -> Result<(), StoreRoomError> {
         let mut map = self.inner.lock();
-        map.insert(room.id(), room.into());
+        if map.insert(room.id(), room.into()).is_some() {
+            return Err(RoomWithIdAlreadyExists(room.id()).into());
+        }
         Ok(())
     }
 
-    async fn update(&self, room: &Room) -> Result<(), RoomPersistenceError> {
+    async fn update(&self, room: &Room) -> Result<(), UpdateRoomError> {
         let room_id = room.id();
         let mut map = self.inner.lock();
         let _stored_room = map
             .get(&room_id)
-            .ok_or(RoomPersistenceError::NotFound(RoomNotFoundError(room_id)))?;
+            .ok_or(UpdateRoomError::NotFound(RoomNotFoundError(room_id)))?;
         map.insert(room_id, room.into());
         Ok(())
     }
 
-    async fn get(&self, room_id: Uuid) -> Result<Room, RoomPersistenceError> {
+    async fn get(&self, room_id: Uuid) -> Result<Room, GetRoomError> {
         let map = self.inner.lock();
         let stored_room = map
             .get(&room_id)
-            .ok_or_else::<RoomPersistenceError, _>(|| RoomNotFoundError(room_id).into())?;
+            .ok_or_else::<GetRoomError, _>(|| RoomNotFoundError(room_id).into())?;
         Ok(from_stored_room(room_id, stored_room))
     }
 
-    async fn have_member(&self, user: &User) -> Result<Vec<Room>, RoomPersistenceError> {
+    async fn have_member(&self, user: &User) -> Vec<Room> {
         let map = self.inner.lock();
-        let rooms: Vec<Room> = map
-            .iter()
+        map.iter()
             .filter(|(_id, stored_room)| stored_room.members.contains(&user.id()))
             .map(|(id, stored_room)| from_stored_room(*id, stored_room))
-            .collect();
-        Ok(rooms)
+            .collect()
     }
 }
 

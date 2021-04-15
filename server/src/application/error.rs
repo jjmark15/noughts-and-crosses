@@ -1,6 +1,5 @@
 use crate::domain::room::{
-    GameAssignmentError, NewGameError as DomainNewGameError, RoomAssignmentError,
-    RoomPersistenceError as DomainRoomPersistenceError,
+    GameAssignmentError, NewGameError as DomainNewGameError, RoomAssignmentError, StoreRoomError,
 };
 use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
 
@@ -8,7 +7,7 @@ use crate::domain::user::UserPersistenceError as DomainUserPersistenceError;
 #[error(transparent)]
 pub(crate) struct RoomCreationError {
     #[from]
-    cause: DomainRoomPersistenceError,
+    cause: StoreRoomError,
 }
 
 #[derive(Debug, thiserror::Error)]

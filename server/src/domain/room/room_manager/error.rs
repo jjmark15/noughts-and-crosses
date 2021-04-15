@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::domain::game::{
     GameNotFoundError, GamePersistenceError, GamePlayServiceError, PlayerCountExceededError,
 };
-use crate::domain::room::{RoomNotFoundError, RoomPersistenceError};
+use crate::domain::room::{GetRoomError, RoomNotFoundError, UpdateRoomError};
 use crate::domain::user::{UserNotFoundError, UserPersistenceError};
 
 #[derive(Debug, thiserror::Error)]
@@ -37,10 +37,20 @@ impl From<UserPersistenceError> for NewGameError {
     }
 }
 
-impl From<RoomPersistenceError> for NewGameError {
-    fn from(err: RoomPersistenceError) -> Self {
+impl From<GetRoomError> for NewGameError {
+    fn from(err: GetRoomError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
+            GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
+        }
+    }
+}
+
+impl From<UpdateRoomError> for NewGameError {
+    fn from(err: UpdateRoomError) -> Self {
+        match err {
+            UpdateRoomError::NotFound(room_not_found_err) => {
+                NewGameError::RoomNotFound(room_not_found_err)
+            }
         }
     }
 }
@@ -65,10 +75,18 @@ impl From<UserPersistenceError> for RoomAssignmentError {
     }
 }
 
-impl From<RoomPersistenceError> for RoomAssignmentError {
-    fn from(err: RoomPersistenceError) -> Self {
+impl From<GetRoomError> for RoomAssignmentError {
+    fn from(err: GetRoomError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
+            GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
+        }
+    }
+}
+
+impl From<UpdateRoomError> for RoomAssignmentError {
+    fn from(err: UpdateRoomError) -> Self {
+        match err {
+            UpdateRoomError::NotFound(err) => RoomAssignmentError::RoomNotFound(err),
         }
     }
 }
@@ -105,10 +123,10 @@ impl From<UserPersistenceError> for GameAssignmentError {
     }
 }
 
-impl From<RoomPersistenceError> for GameAssignmentError {
-    fn from(err: RoomPersistenceError) -> Self {
+impl From<GetRoomError> for GameAssignmentError {
+    fn from(err: GetRoomError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
+            GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }
@@ -147,10 +165,10 @@ impl From<UserPersistenceError> for GameMoveError {
     }
 }
 
-impl From<RoomPersistenceError> for GameMoveError {
-    fn from(err: RoomPersistenceError) -> Self {
+impl From<GetRoomError> for GameMoveError {
+    fn from(err: GetRoomError) -> Self {
         match err {
-            RoomPersistenceError::NotFound(room_not_found_error) => room_not_found_error.into(),
+            GetRoomError::NotFound(room_not_found_error) => room_not_found_error.into(),
         }
     }
 }
