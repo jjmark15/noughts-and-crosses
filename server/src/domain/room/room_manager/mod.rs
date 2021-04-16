@@ -1,11 +1,10 @@
-use std::collections::HashSet;
 use std::sync::Arc;
 
 use uuid::Uuid;
 
 pub(crate) use error::*;
 
-use crate::domain::game::{Game, GameMove, GamePlayService, GameRepository};
+use crate::domain::game::{GameManager, GameMove};
 use crate::domain::room::{Room, RoomRepository};
 use crate::domain::user::{User, UserRepository};
 
@@ -25,58 +24,41 @@ pub(crate) trait RoomManager {
     async fn add_player(&self, room_id: Uuid, user_id: Uuid) -> Result<Option<()>, AddPlayerError>;
 }
 
-pub(crate) struct RoomManagerImpl<
-    UR: UserRepository,
-    RR: RoomRepository,
-    GR: GameRepository,
-    GPS: GamePlayService,
-> {
+pub(crate) struct RoomManagerImpl<UR: UserRepository, RR: RoomRepository, GM: GameManager> {
     user_repository: Arc<UR>,
     room_repository: Arc<RR>,
-    game_repository: GR,
-    game_play_service: GPS,
+    game_manager: GM,
 }
 
-impl<UR, RR, GR, GPS> RoomManagerImpl<UR, RR, GR, GPS>
+impl<UR, RR, GM> RoomManagerImpl<UR, RR, GM>
 where
     UR: UserRepository,
     RR: RoomRepository,
-    GR: GameRepository,
-    GPS: GamePlayService,
+    GM: GameManager,
 {
     pub(crate) fn new(
         user_repository: Arc<UR>,
         room_repository: Arc<RR>,
-        game_repository: GR,
-        game_play_service: GPS,
+        game_manager: GM,
     ) -> Self {
         RoomManagerImpl {
             user_repository,
             room_repository,
-            game_repository,
-            game_play_service,
+            game_manager,
         }
     }
 
     fn user_is_in_room(user: &User, room: &Room) -> bool {
         room.is_member(user.id())
     }
-
-    async fn remove_player(&self, user_id: Uuid, game_id: Uuid) -> Result<(), RemovePlayerError> {
-        let mut game = self.game_repository.get(game_id).await?;
-        game.remove_player(user_id);
-        self.game_repository.update(&game).await?;
-        Ok(())
-    }
 }
 
 #[async_trait::async_trait]
-impl<UR, RR, GR, GPS> RoomManager for RoomManagerImpl<UR, RR, GR, GPS>
+impl<UR, RR, GM> RoomManager for RoomManagerImpl<UR, RR, GM>
 where
     UR: UserRepository + Send + Sync,
     RR: RoomRepository + Send + Sync,
-    GR: GameRepository + Send + Sync,
-    GPS: GamePlayService + Send + Sync,
+    GM: GameManager + Send + Sync,
 {
     async fn join_room(&self, user_id: Uuid, room_id: Uuid) -> Result<(), JoinRoomError> {
         let user = self.user_repository.get(user_id).await?;
@@ -97,7 +79,7 @@ where
             .for_each(|room| room.remove_member(user_id));
         for room in &rooms {
             if let Some(game_id) = room.active_game_id() {
-                self.remove_player(user_id, game_id).await?;
+                self.game_manager.remove_player(user_id, game_id).await?;
             }
             self.room_repository.update(room).await?;
         }
@@ -120,8 +102,7 @@ where
             return Err(UserNotInRoomError::new(user_id, room_id).into());
         }
 
-        let game = Game::new(Uuid::new_v4(), HashSet::new(), vec![]);
-        self.game_repository.store(&game).await.unwrap();
+        let game = self.game_manager.start_new_game().await?;
         room.set_active_game_id(game.id());
         self.room_repository
             .update(&room)
@@ -149,10 +130,9 @@ where
 
         match room.active_game_id() {
             Some(game_id) => {
-                let mut game = self.game_repository.get(game_id).await?;
-                self.game_play_service.apply_move(&mut game, game_move)?;
-                self.game_repository.update(&game).await?;
-                Ok(())
+                self.game_manager
+                    .make_game_move(user.id(), game_id, game_move)
+                    .await
             }
             None => Err(NoActiveGameInRoomError(room_id).into()),
         }
@@ -181,12 +161,6 @@ where
             .active_game_id
             .ok_or(NoActiveGameInRoomError(room_id))?;
 
-        let mut game = self.game_repository.get(game_id).await?;
-        if let Some(()) = game.add_player(user_id).map_err(AddPlayerError::from)? {
-            self.game_repository.update(&game).await?;
-            Ok(Some(()))
-        } else {
-            Ok(None)
-        }
+        self.game_manager.add_player(game_id, user_id).await
     }
 }

@@ -3,11 +3,13 @@ use std::collections::HashSet;
 use uuid::Uuid;
 
 pub(crate) use error::*;
+pub(crate) use game_manager::*;
 pub(crate) use game_move::*;
 pub(crate) use game_play_service::*;
 pub(crate) use game_repository::*;
 
 mod error;
+mod game_manager;
 mod game_move;
 mod game_play_service;
 mod game_repository;

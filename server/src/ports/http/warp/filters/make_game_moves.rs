@@ -58,10 +58,11 @@ fn make_game_move_error_response(err: crate::application::GameMoveError) -> Resp
         GameMoveError::NoActiveGameInRoom(_)
         | GameMoveError::UserNotFound(_)
         | GameMoveError::RoomNotFound(_) => StatusCode::NOT_FOUND,
-        GameMoveError::PlayerCountExceeded(_) => StatusCode::NOT_ACCEPTABLE,
-        GameMoveError::UserNotInRoom(_) => StatusCode::NOT_ACCEPTABLE,
+        GameMoveError::PlayerCountExceeded(_)
+        | GameMoveError::UserNotInRoom(_)
+        | GameMoveError::UserNotPlayer(_)
+        | GameMoveError::GamePlayError(_) => StatusCode::NOT_ACCEPTABLE,
         GameMoveError::GameNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        GameMoveError::GamePlayError(_) => StatusCode::NOT_ACCEPTABLE,
     };
 
     let error_body = SimpleErrorResponse::new(err.to_string());

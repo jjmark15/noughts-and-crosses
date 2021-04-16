@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use crate::domain::game::{
     ApplyMoveError, GameNotFoundError, GetGameError, PlayerCountExceededError, UpdateGameError,
+    UserNotAPlayerInGameError,
 };
 use crate::domain::room::{GetRoomError, RoomNotFoundError, UpdateRoomError};
 use crate::domain::user::{GetUserError, UserNotFoundError};
@@ -229,6 +230,8 @@ pub(crate) enum GameMoveError {
     PlayerCountExceeded(#[from] PlayerCountExceededError),
     #[error(transparent)]
     UserNotInRoom(#[from] UserNotInRoomError),
+    #[error(transparent)]
+    UserNotPlayer(#[from] UserNotAPlayerInGameError),
     #[error(transparent)]
     GamePlayError(#[from] ApplyMoveError),
 }

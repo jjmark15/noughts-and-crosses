@@ -1,8 +1,5 @@
-use uuid::Uuid;
-
 use crate::domain::game::{
     Game, GameMove, GameMovePosition, PositionIsAlreadyOccupiedError, PositionOutOfBoundsError,
-    UserNotAPlayerInGameError,
 };
 
 pub(crate) trait GamePlayService {
@@ -14,10 +11,6 @@ pub(crate) struct GamePlayServiceImpl;
 impl GamePlayServiceImpl {
     pub(crate) fn new() -> Self {
         GamePlayServiceImpl
-    }
-
-    fn user_is_player(user_id: Uuid, game: &Game) -> bool {
-        game.players().contains(&user_id)
     }
 
     fn occupied_positions(game: &Game) -> Vec<GameMovePosition> {
@@ -35,10 +28,7 @@ impl GamePlayServiceImpl {
 
 impl GamePlayService for GamePlayServiceImpl {
     fn apply_move(&self, game: &mut Game, game_move: GameMove) -> Result<(), ApplyMoveError> {
-        let user_id = game_move.user_id();
-        if !Self::user_is_player(user_id, &game) {
-            return Err(UserNotAPlayerInGameError(user_id).into());
-        } else if Self::position_is_out_of_bounds(&game_move.position()) {
+        if Self::position_is_out_of_bounds(&game_move.position()) {
             return Err(PositionOutOfBoundsError.into());
         } else if Self::position_is_occupied(&game, &game_move.position()) {
             return Err(PositionIsAlreadyOccupiedError.into());
@@ -50,8 +40,6 @@ impl GamePlayService for GamePlayServiceImpl {
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum ApplyMoveError {
-    #[error(transparent)]
-    NotAPlayer(#[from] UserNotAPlayerInGameError),
     #[error("Position is already occupied")]
     PositionIsAlreadyOccupied(#[from] PositionIsAlreadyOccupiedError),
     #[error("Position is out of bounds")]

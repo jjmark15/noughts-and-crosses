@@ -4,7 +4,7 @@ use std::sync::Arc;
 use warp::Filter;
 
 use crate::application::ApplicationServiceImpl;
-use crate::domain::game::GamePlayServiceImpl;
+use crate::domain::game::{GameManagerImpl, GamePlayServiceImpl};
 use crate::domain::room::{RoomFactoryImpl, RoomManagerImpl};
 use crate::domain::user::UserFactoryImpl;
 use crate::ports::http::warp::{
@@ -24,8 +24,7 @@ type ApplicationServiceAlias = ApplicationServiceImpl<
     RoomManagerImpl<
         MapUserRepositoryAdapter,
         MapRoomRepositoryAdapter,
-        MapGameRepositoryAdapter,
-        GamePlayServiceImpl,
+        GameManagerImpl<MapGameRepositoryAdapter, GamePlayServiceImpl>,
     >,
 >;
 
@@ -96,11 +95,11 @@ impl App {
         let user_factory = UserFactoryImpl::new();
         let game_repository = MapGameRepositoryAdapter::new();
         let game_play_service = GamePlayServiceImpl::new();
+        let game_manager = GameManagerImpl::new(game_repository, game_play_service);
         let room_manager = RoomManagerImpl::new(
             user_repository.clone(),
             room_repository.clone(),
-            game_repository,
-            game_play_service,
+            game_manager,
         );
         ApplicationServiceImpl::new(
             room_repository,
