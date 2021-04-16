@@ -1,9 +1,12 @@
 use uuid::Uuid;
 
-use crate::domain::game::{Game, GameMove, GameMovePosition};
+use crate::domain::game::{
+    Game, GameMove, GameMovePosition, PositionIsAlreadyOccupiedError, PositionOutOfBoundsError,
+    UserNotAPlayerInGameError,
+};
 
 pub(crate) trait GamePlayService {
-    fn apply_move(&self, game: &mut Game, game_move: GameMove) -> Result<(), GamePlayServiceError>;
+    fn apply_move(&self, game: &mut Game, game_move: GameMove) -> Result<(), ApplyMoveError>;
 }
 
 pub(crate) struct GamePlayServiceImpl;
@@ -31,14 +34,14 @@ impl GamePlayServiceImpl {
 }
 
 impl GamePlayService for GamePlayServiceImpl {
-    fn apply_move(&self, game: &mut Game, game_move: GameMove) -> Result<(), GamePlayServiceError> {
+    fn apply_move(&self, game: &mut Game, game_move: GameMove) -> Result<(), ApplyMoveError> {
         let user_id = game_move.user_id();
         if !Self::user_is_player(user_id, &game) {
-            return Err(GamePlayServiceError::UserNotAPlayer(user_id));
+            return Err(UserNotAPlayerInGameError(user_id).into());
         } else if Self::position_is_out_of_bounds(&game_move.position()) {
-            return Err(GamePlayServiceError::PositionOutOfBounds);
+            return Err(PositionOutOfBoundsError.into());
         } else if Self::position_is_occupied(&game, &game_move.position()) {
-            return Err(GamePlayServiceError::PositionIsAlreadyOccupied);
+            return Err(PositionIsAlreadyOccupiedError.into());
         }
         game.append_move(game_move);
         Ok(())
@@ -46,11 +49,11 @@ impl GamePlayService for GamePlayServiceImpl {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum GamePlayServiceError {
-    #[error("User({0}) is not a player in game")]
-    UserNotAPlayer(Uuid),
+pub(crate) enum ApplyMoveError {
+    #[error(transparent)]
+    NotAPlayer(#[from] UserNotAPlayerInGameError),
     #[error("Position is already occupied")]
-    PositionIsAlreadyOccupied,
+    PositionIsAlreadyOccupied(#[from] PositionIsAlreadyOccupiedError),
     #[error("Position is out of bounds")]
-    PositionOutOfBounds,
+    PositionOutOfBounds(#[from] PositionOutOfBoundsError),
 }

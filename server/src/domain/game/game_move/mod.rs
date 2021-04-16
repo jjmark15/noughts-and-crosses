@@ -1,7 +1,9 @@
 use uuid::Uuid;
 
+pub(crate) use error::*;
 pub(crate) use game_move_position::*;
 
+mod error;
 mod game_move_position;
 
 #[derive(Debug, Copy, Clone)]
